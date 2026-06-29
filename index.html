@@ -146,11 +146,17 @@ body {
 /* Parallax background */
 .hero-bg {
   position: absolute;
-  inset: -20%;
-  background-image: url('hero.jpg');
-  background-size: cover;
-  background-position: center 30%;
-  background-attachment: fixed;
+  inset: -30% 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hero-bg img {
+  width: 100%;
+  height: 160%;
+  object-fit: cover;
+  object-position: center 30%;
+  display: block;
   will-change: transform;
 }
 
