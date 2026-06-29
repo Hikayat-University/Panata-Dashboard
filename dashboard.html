@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panata — Dashboard Proyek Saat Ini</title>
+<title>Panata — Dashboard Proyek A</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,200;0,9..144,300;1,9..144,200;1,9..144,300&display=swap" rel="stylesheet">
 <style>
   /* ── TOKEN SYSTEM ──────────────────────────────────────
@@ -405,7 +405,7 @@
     </div>
     <div>
       <div class="brand-name">Panata Bayu Nugraha</div>
-      <div class="brand-sub">Dashboard — Proyek Saat Ini</div>
+      <div class="brand-sub">Dashboard — Proyek A</div>
     </div>
   </a>
   <div class="topbar-right">
@@ -662,7 +662,7 @@ function renderSidebar() {
       <div class="pitem-meta">${p.location || ''}</div>
       <div class="pitem-tags">
         ${isB
-          ? `<span class="ptag" style="background:rgba(100,120,180,0.15);color:#7B96C8;border:1px solid rgba(100,120,180,0.25);">Format B</span>`
+          ? `<span class="ptag" style="background:rgba(100,120,180,0.15);color:#7B96C8;border:1px solid rgba(100,120,180,0.25);">Proyek B</span>`
           : `${s.open   > 0 ? `<span class="ptag open">${s.open} open</span>` : ''}
              ${s.error  > 0 ? `<span class="ptag error">${s.error} err</span>` : ''}
              ${s.closed > 0 ? `<span class="ptag closed">${s.closed} ✓</span>` : ''}`
@@ -904,7 +904,7 @@ function buildRows(parsed, startIdx, headers, sheetType) {
   return rows;
 }
 
-// Map nama kolom ke key standar — cover Format A, B, dan semua variasi
+// Map nama kolom ke key standar — cover semua variasi
 function normalizeKey(raw, sheetType) {
   const h = raw.trim().toLowerCase()
     .replace(/[\r\n]+/g,' ').replace(/\s+/g,' ');
@@ -916,14 +916,14 @@ function normalizeKey(raw, sheetType) {
   if (/satuan/.test(h)) return 'satuan';
   if (/cash.out|cashout/.test(h)) return 'cash_out';
 
-  // Format A — RAKAP
+  // RAKAP Format A
   if (/^total.?pm$/.test(h)) return 'total_pm';
   if (/^total.?po$/.test(h)) return 'total_po';
   if (/^total.?sj$/.test(h)) return 'total_sj';
   if (/sisa.belum|^sisa$/.test(h)) return 'sisa_belum_dikirim';
   if (/^status$/.test(h)) return 'status';
 
-  // Format B — RAKAP: Permintaan Material (PM) group
+  // RAKAP Format B — Permintaan Material (PM) group
   if (/^id.?pm$|permintaan.*id.?pm|^id_pm$/.test(h)) return 'id_pm';
   if (/permintaan.*tanggal|tanggal.*pm/.test(h)) return 'tgl_pm';
   // Format B — Purchasing Order (PO) group
@@ -937,11 +937,11 @@ function normalizeKey(raw, sheetType) {
   if (/^volume sj$|^ *sj *$/.test(h) || h === 'sj') return 'vol_sj';
   if (/dev.*pm.*po|dev.pm.po/.test(h)) return 'dev_pm_po';
   if (/dev.*po.*sj|dev.po.sj/.test(h)) return 'dev_po_sj';
-  // Format B — Status kolom (ada 3: PM-PO, PO-SJ, Material)
+  // Format B — Status kolom
   if (/status.*pm.*po|pm.*po.*status/.test(h)) return 'status_pm_po';
   if (/status.*po.*sj|po.*sj.*status/.test(h)) return 'status_po_sj';
   if (/status.*material|status.mat/.test(h)) return 'status_material';
-  // Format B juga: kolom "Status" terakhir = status material
+  // Format B: kolom "Status" terakhir = status material
   if (/^status$/.test(h) && sheetType === 'rakap_b') return 'status_material';
 
   // REPORT columns
@@ -967,11 +967,11 @@ function normalizeStatus(raw) {
   if (s.includes('CLOSED') || s.includes('✓')) return 'CLOSED';
   if (s === 'OPEN') return 'OPEN';
   if (s.includes('ERROR') || s.includes('ERR')) return 'ERROR';
-  // Format A REPORT: indikator stok
+  // Proyek A REPORT: indikator stok
   if (/STOCK.AMAN|^AMAN$/.test(s)) return 'CLOSED';
   if (/STOCK.TIPIS|^TIPIS$/.test(s)) return 'OPEN';
   if (/STOCK.HABIS|^HABIS$/.test(s)) return 'ERROR';
-  // Format B: status material teks lengkap
+  // Proyek B: status material teks lengkap
   if (/MATERIAL.KIRIM.PROYEK|KIRIM.PROYEK|SI CLOSED|SJ CLOSED/.test(s)) return 'CLOSED';
   if (/MATERIAL.DI.WORKSHOP|DI.WORKSHOP|PO CLOSED/.test(s)) return 'OPEN';
   if (/KURANG|LEBIH|DI.KIRIM.LEBIH/.test(s)) return 'OPEN';
@@ -1029,14 +1029,14 @@ function drillDown(pid) {
   document.querySelectorAll('.pitem')[idx]?.classList.add('active');
   const p = PROJECTS.find(x => x.id === pid);
 
-  // Format B — tampilkan coming soon, bukan tabel kosong
+  // Proyek B — tampilkan coming soon, bukan tabel kosong
   if ((p?.format || 'A') === 'B') {
     showFormatBComingSoon(p);
     return;
   }
 
   document.getElementById('materialTitle').textContent = p?.name || 'Material';
-  document.getElementById('materialSub').textContent = p?.location || 'PM → PO → SJ';
+  document.getElementById('materialSub').textContent = p?.location || 'Proyek B';
   if (p?.urlSheets) {
     document.getElementById('editMaterialLink').href = p.urlSheets;
     document.getElementById('editSupplierLink').href = p.urlSheets;
@@ -1061,7 +1061,7 @@ function showFormatBComingSoon(p) {
   document.getElementById('nav-material').classList.add('active');
 
   document.getElementById('materialTitle').innerHTML =
-    `${p?.name || 'Proyek'} <span style="font-size:11px;font-weight:400;background:rgba(100,120,180,0.12);color:#7B96C8;border:1px solid rgba(100,120,180,0.25);padding:2px 8px;border-radius:2px;vertical-align:middle;margin-left:6px;">Format B</span>`;
+    `${p?.name || 'Proyek'} <span style="font-size:11px;font-weight:400;background:rgba(100,120,180,0.12);color:#7B96C8;border:1px solid rgba(100,120,180,0.25);padding:2px 8px;border-radius:2px;vertical-align:middle;margin-left:6px;">Proyek B</span>`;
   document.getElementById('materialSub').textContent = p?.location || '';
 
   const tb = document.getElementById('materialBody');
@@ -1069,21 +1069,21 @@ function showFormatBComingSoon(p) {
     <tr><td colspan="8" style="padding:48px 24px;text-align:center;">
       <div style="display:inline-flex;flex-direction:column;align-items:center;gap:14px;max-width:380px;">
         <div style="width:48px;height:48px;border-radius:3px;background:rgba(100,120,180,0.1);border:1px solid rgba(100,120,180,0.25);display:flex;align-items:center;justify-content:center;font-size:20px;">⏳</div>
-        <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--text);">Dashboard v2 — Format B</div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--text);">Dashboard v2 — Proyek B</div>
         <div style="font-size:12px;color:var(--text-muted);line-height:1.7;">
-          Data proyek ini menggunakan Format B yang lebih detail —
-          tracking per PM → PO → SJ, durasi, dan status per stage.
+          Data proyek ini menggunakan Proyek B yang lebih detail —
+          tracking per Proyek B, durasi, dan status per stage.
           Dashboard khusus untuk format ini sedang disiapkan.
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
           ${p?.urlSheets ? `<a href="${p.urlSheets}" target="_blank" class="btn-top teal" style="text-decoration:none;">↗ Lihat data di Sheets</a>` : ''}
-          <a href="dashboard-b.html" class="btn-top" style="text-decoration:none;border-color:rgba(123,150,200,0.4);color:#7B96C8;">Buka Dashboard Format B →</a>
+          <a href="dashboard-b.html" class="btn-top" style="text-decoration:none;border-color:rgba(123,150,200,0.4);color:#7B96C8;">Buka Dashboard Proyek B →</a>
           <button class="btn-top" onclick="showView('overview')">← Kembali ke Overview</button>
         </div>
       </div>
     </td></tr>`;
 
-  // Sembunyikan filter row untuk Format B
+  // Sembunyikan filter row untuk Proyek B
   document.querySelector('#viewMaterial .frow').style.display = 'none';
   document.querySelector('#viewMaterial .hactions').style.display = 'none';
 }
@@ -1125,7 +1125,7 @@ function renderOverview() {
         <div class="pcard-loc">${p.location||'PROYEK'}</div>
         <div class="pcard-name">${p.name}</div>
         <div style="margin-top:8px;display:flex;align-items:center;gap:7px;">
-          <span style="font-size:9px;padding:2px 8px;border-radius:2px;font-weight:600;background:rgba(100,120,180,0.12);color:#7B96C8;border:1px solid rgba(100,120,180,0.25);">Format B</span>
+          <span style="font-size:9px;padding:2px 8px;border-radius:2px;font-weight:600;background:rgba(100,120,180,0.12);color:#7B96C8;border:1px solid rgba(100,120,180,0.25);">Proyek B</span>
           <span style="font-size:9px;color:var(--text-dim);">Dashboard v2</span>
         </div>
         <div class="pprog" style="margin-top:10px;"><div class="pprog-fill" style="width:0%;background:rgba(100,120,180,0.3);"></div></div>
@@ -1158,7 +1158,7 @@ function applyFilters() {
     (r.nama_material||'').toLowerCase().includes(search)||
     (r.supplier||'').toLowerCase().includes(search));
 
-  // Deteksi apakah ada baris Format B di hasil filter
+  // Deteksi apakah ada baris Proyek B di hasil filter
   const hasFormatB = rows.some(r => r.project_format === 'B');
   const hasFormatA = rows.some(r => r.project_format !== 'B');
   const mixed = hasFormatA && hasFormatB;
@@ -1166,14 +1166,14 @@ function applyFilters() {
   // Set header tabel sesuai format dominan
   const thead = document.querySelector('#materialBody').closest('table').querySelector('thead tr');
   if (hasFormatB && !hasFormatA) {
-    // Semua Format B
+    // Semua Proyek B
     thead.innerHTML = `<th>No</th><th>Material</th><th>Supplier</th>
       <th>ID PM</th><th>ID PO</th><th>Durasi</th>
       <th class="nr">PM</th><th class="nr">PO</th><th class="nr">SJ</th>
       <th class="nr">Dev PM-PO</th><th class="nr">Dev PO-SJ</th>
       <th>Status PM-PO</th><th>Status PO-SJ</th><th>Status Material</th>`;
   } else {
-    // Format A atau campuran — tampilkan kolom A + kolom format sebagai info
+    // Proyek A atau campuran — tampilkan kolom A + kolom format sebagai info
     thead.innerHTML = `<th>No</th><th>Material</th><th>Supplier</th>
       <th class="nr">PM</th><th class="nr">PO</th><th class="nr">SJ</th>
       <th class="nr">Sisa</th><th>Status</th>`;
@@ -1193,7 +1193,7 @@ function applyFilters() {
     const tr = document.createElement('tr');
 
     if (row.project_format === 'B') {
-      // Render Format B
+      // Render Proyek B
       const stPmPo = row.status_pm_po || '';
       const stPoSj = row.status_po_sj || '';
       const stMat  = row._raw_status || row.status_material || '';
@@ -1202,7 +1202,7 @@ function applyFilters() {
       const devPoSj = parseFloat(row.dev_po_sj)||0;
 
       if (hasFormatB && !hasFormatA) {
-        // Full Format B columns
+        // Full Proyek B columns
         tr.innerHTML = `
           <td class="mu">${i+1}</td>
           <td><strong>${row.nama_material||'—'}</strong>
@@ -1222,13 +1222,13 @@ function applyFilters() {
           <td><div class="badge ${scMat}" onclick="openStatusModal(${row.project_id},'${row.no}','${safeName}','${st}')">
             <div class="bdot"></div>${stMat||st||'—'}</div></td>`;
       } else {
-        // Mixed: tampilkan Format A columns, tapi badge tunjukkan status material
+        // Mixed: tampilkan Proyek A columns, tapi badge tunjukkan status material
         const sisa = parseInt(row.sisa_belum_dikirim)||0;
         tr.innerHTML = `
           <td class="mu">${i+1}</td>
           <td><strong>${row.nama_material||'—'}</strong>
             ${!projId&&row.project_name?`<div style="font-size:9px;color:var(--text-dim);margin-top:1px">${row.project_name}</div>`:''}
-            <div style="font-size:9px;color:var(--text-dim);margin-top:1px">Format B · ${row.id_pm||''} → ${row.id_po||''}</div>
+            <div style="font-size:9px;color:var(--text-dim);margin-top:1px">Proyek B · ${row.id_pm||''} → ${row.id_po||''}</div>
           </td>
           <td class="mu" style="font-size:10px">${row.supplier||'—'}</td>
           <td class="nr">${row.vol_pm||row.total_pm||'—'}</td>
@@ -1239,7 +1239,7 @@ function applyFilters() {
             <div class="bdot"></div>${stMat||st||'—'}</div></td>`;
       }
     } else {
-      // Render Format A
+      // Render Proyek A
       const sisa = parseInt(row.sisa_belum_dikirim)||0;
       const sl = st.includes('CLOSED')?'CLOSED ✓':st||'—';
       tr.innerHTML = `
@@ -1448,14 +1448,14 @@ function renderSetupList() {
           <label style="display:flex;align-items:flex-start;gap:8px;flex:1;cursor:pointer;padding:10px 12px;border:1px solid ${fmt==='A'?'var(--teal)':'var(--border)'};border-radius:8px;background:${fmt==='A'?'var(--teal-dim)':'transparent'};transition:all .15s;">
             <input type="radio" name="fmt-${i}" value="A" ${fmt==='A'?'checked':''} onchange="draftProjects[${i}].format='A';renderSetupList();document.getElementById('pbody-${i}').classList.add('open')" style="margin-top:2px;accent-color:var(--teal)">
             <div>
-              <div style="font-size:11px;font-weight:600;color:var(--text)">Format A</div>
+              <div style="font-size:11px;font-weight:600;color:var(--text)">Proyek A</div>
               <div style="font-size:9px;color:var(--text-muted);margin-top:2px;line-height:1.5">RAKAP: Nama Material, Supplier, Total PM/PO/SJ, Sisa, Status<br>3 proyek pertama (Barru, Sidrap, Wajo, dst)</div>
             </div>
           </label>
           <label style="display:flex;align-items:flex-start;gap:8px;flex:1;cursor:pointer;padding:10px 12px;border:1px solid ${fmt==='B'?'var(--teal)':'var(--border)'};border-radius:8px;background:${fmt==='B'?'var(--teal-dim)':'transparent'};transition:all .15s;">
             <input type="radio" name="fmt-${i}" value="B" ${fmt==='B'?'checked':''} onchange="draftProjects[${i}].format='B';renderSetupList();document.getElementById('pbody-${i}').classList.add('open')" style="margin-top:2px;accent-color:var(--teal)">
             <div>
-              <div style="font-size:11px;font-weight:600;color:var(--text)">Format B</div>
+              <div style="font-size:11px;font-weight:600;color:var(--text)">Proyek B</div>
               <div style="font-size:9px;color:var(--text-muted);margin-top:2px;line-height:1.5">RAKAP: ID_PM, ID_PO, Durasi, Supplier, Volume PM/PO/SJ, Dev, Status PM-PO & PO-SJ<br>5 proyek terakhir (OKI, Ogan Ilir, Nagan Raya, dst)</div>
             </div>
           </label>
