@@ -520,6 +520,68 @@ body {
   border: 1px solid var(--border);
 }
 
+/* ── PROJECT LIST IN CARD ── */
+.proj-list {
+  margin-top: 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.proj-list-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  transition: all 0.15s;
+}
+
+.proj-list-item:last-child { border-bottom: none; }
+.proj-list-item:hover .proj-list-name { color: var(--teal); }
+.proj-list-item.blue:hover .proj-list-name { color: #7B96C8; }
+
+.proj-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.proj-list-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink);
+  flex: 1;
+  line-height: 1.35;
+  transition: color 0.15s;
+}
+
+.proj-list-loc {
+  font-size: 10px;
+  color: var(--ink-dim);
+  white-space: nowrap;
+}
+
+.proj-list-empty {
+  font-size: 11px;
+  color: var(--ink-dim);
+  font-style: italic;
+  padding: 4px 0;
+}
+
+.menu-grid-new {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 1100px;
+}
+
+@media (max-width: 900px) {
+  .menu-grid-new { grid-template-columns: 1fr; }
+}
+}
+
 /* ── ABOUT STRIP ── */
 .about-strip {
   padding: 72px 48px;
@@ -689,8 +751,8 @@ body {
   </a>
   <nav class="topnav">
     <a href="index.html" class="nav-link">Beranda</a>
-    <a href="dashboard.html" class="nav-link">Format A</a>
-    <a href="dashboard-b.html" class="nav-cta">Format B →</a>
+    <a href="dashboard.html" class="nav-link">Proyek A</a>
+    <a href="dashboard-b.html" class="nav-cta">Proyek B →</a>
   </nav>
 </header>
 
@@ -748,9 +810,9 @@ body {
   <div class="section-eyebrow">Modul</div>
   <h2 class="section-title">Semua yang direksi butuhkan dalam satu sistem.</h2>
 
-  <div class="menu-grid" style="grid-template-columns:repeat(3,1fr);max-width:1060px;">
+  <div class="menu-grid-new">
 
-    <!-- PROYEK SAAT INI FORMAT A -->
+    <!-- FORMAT A -->
     <a href="dashboard.html" class="menu-card">
       <div class="card-bar"></div>
       <div class="card-body">
@@ -762,9 +824,12 @@ body {
             <path d="M14 17.5h7M17.5 14v7"/>
           </svg>
         </div>
-        <div class="card-cat">Monitoring · Format A</div>
-        <div class="card-title">Proyek<br>Saat Ini</div>
+        <div class="card-cat">Proyek A</div>
+        <div class="card-title">Proyek A</div>
         <p class="card-desc">Pantau status material, stok, dan supplier. Overview lintas proyek dan drill-down per lokasi.</p>
+        <div class="proj-list" id="listA">
+          <div class="proj-list-empty">Memuat daftar proyek…</div>
+        </div>
       </div>
       <div class="card-footer">
         <div class="card-cta">
@@ -784,9 +849,12 @@ body {
             <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/>
           </svg>
         </div>
-        <div class="card-cat" style="color:#7B96C8;">Tracking · Format B</div>
-        <div class="card-title">PM → PO<br>→ SJ</div>
-        <p class="card-desc">Tracking granular per permintaan material. Durasi, deviasi volume, dan status per stage PM-PO-SJ.</p>
+        <div class="card-cat" style="color:#7B96C8;">Proyek B</div>
+        <div class="card-title">Proyek B</div>
+        <p class="card-desc">Tracking granular per permintaan material. Durasi, deviasi, dan status per stage PM → PO → SJ.</p>
+        <div class="proj-list" id="listB">
+          <div class="proj-list-empty">Memuat daftar proyek…</div>
+        </div>
       </div>
       <div class="card-footer">
         <div class="card-cta" style="color:#7B96C8;">
@@ -812,6 +880,9 @@ body {
         <div class="card-cat">Arsip</div>
         <div class="card-title">Laporan Proyek<br>Selesai</div>
         <p class="card-desc">Rekap otomatis seluruh proyek yang telah selesai — material terpakai, total cash out, dan ringkasan akhir.</p>
+        <div class="proj-list">
+          <div class="proj-list-empty">Belum ada proyek selesai</div>
+        </div>
       </div>
       <div class="card-footer">
         <div class="card-cta">Segera Hadir</div>
@@ -871,18 +942,62 @@ body {
 <div class="toast" id="toast">Fitur ini aktif otomatis saat ada proyek selesai</div>
 
 <script>
+function renderProjectLists() {
+  const rawA = localStorage.getItem('panata_projects');
+  const projA = rawA ? JSON.parse(rawA) : [];
+  renderList('listA', projA, '#00C2B3', false);
+
+  const rawB = localStorage.getItem('panata_b_projects');
+  const projB = rawB ? JSON.parse(rawB) : [];
+  renderList('listB', projB, '#7B96C8', true);
+
+  const total = projA.length + projB.length;
+  const tealEl = document.querySelector('.stat-num .teal');
+  if (total > 0 && tealEl) tealEl.textContent = total;
+}
+
+function renderList(containerId, projects, color, isBlue) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (projects.length === 0) {
+    el.innerHTML = '<div class="proj-list-empty">Belum ada proyek terdaftar</div>';
+    return;
+  }
+  el.innerHTML = projects.map(p => `
+    <div class="proj-list-item ${isBlue ? 'blue' : ''}"
+      onclick="event.stopPropagation(); event.preventDefault();">
+      <div class="proj-dot" style="background:${color};opacity:0.7;"></div>
+      <div class="proj-list-name">${p.name || '—'}</div>
+      <div class="proj-list-loc">${p.location || ''}</div>
+    </div>
+  `).join('');
+}
+
 function showToast() {
   const t = document.getElementById('toast');
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2800);
 }
 
-// Scroll reveal
 const reveals = document.querySelectorAll('.reveal');
 const observer = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
 }, { threshold: 0.12 });
 reveals.forEach(el => observer.observe(el));
+
+const parallaxImg = document.getElementById('parallaxImg');
+if (parallaxImg) {
+  let ticking = false;
+  function updateParallax() {
+    parallaxImg.style.transform = `translateY(${window.scrollY * 0.35}px)`;
+    ticking = false;
+  }
+  window.addEventListener('scroll', () => {
+    if (!ticking) { requestAnimationFrame(updateParallax); ticking = true; }
+  }, { passive: true });
+}
+
+renderProjectLists();
 </script>
 
 </body>
