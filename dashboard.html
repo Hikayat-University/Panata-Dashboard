@@ -737,19 +737,30 @@ function parseCSV(text, sheetType, projectFormat) {
   }
 
   // FORMAT UMUM (A + supplier + report semua format):
-  // Scan baris 1-20, cari header real (baris pertama dgn >=3 cell teks)
+  // Scan baris 1-25, cari header real
   let headerIdx = -1;
   for (let i = 0; i < Math.min(parsed.length, 25); i++) {
     const cells = parsed[i];
     const nonEmpty = cells.filter(c => c.trim() !== '');
     if (nonEmpty.length < 3) continue;
     const textCells = nonEmpty.filter(c => isNaN(c.trim()) && c.trim() !== '');
-    if (textCells.length / nonEmpty.length >= 0.6) {
-      // Pastikan bukan baris sub-kategori satu cell (e.g. "A  DATA REKAP MATERIAL")
-      if (nonEmpty.length === 1) continue;
-      headerIdx = i;
-      break;
+    if (textCells.length / nonEmpty.length < 0.6) continue;
+
+    // Skip baris divider (cell pertama huruf tunggal)
+    const firstNonEmpty = nonEmpty[0] || '';
+    if (/^[A-Za-z]$/.test(firstNonEmpty.trim()) && nonEmpty.length <= 3) continue;
+
+    // Skip baris grup (cth: "VOLUME" yang span beberapa kolom) —
+    // biasanya hanya 1-2 kata teks dengan banyak cell kosong
+    if (nonEmpty.length <= 3 && textCells.length === nonEmpty.length) {
+      // Kandidat baris grup — cek apakah baris berikutnya lebih banyak kolom
+      const nextRow = parsed[i + 1] || [];
+      const nextNonEmpty = nextRow.filter(c => c.trim());
+      if (nextNonEmpty.length > nonEmpty.length * 2) continue; // ini baris grup, skip
     }
+
+    headerIdx = i;
+    break;
   }
 
   if (headerIdx === -1) return [];
@@ -830,6 +841,14 @@ function buildRows(parsed, startIdx, headers, sheetType) {
     const nonEmpty = vals.filter(v => v.trim() !== '');
     if (nonEmpty.length < 2) continue;
 
+    // ── SKIP baris divider ──────────────────────────────
+    // Pola: cell pertama non-kosong adalah huruf tunggal (A, B, C)
+    // dan total non-empty <= 3 → baris kategori, bukan data
+    const firstNonEmpty = nonEmpty[0] || '';
+    if (/^[A-Za-z]$/.test(firstNonEmpty.trim()) && nonEmpty.length <= 3) continue;
+    // Pola: baris yang isinya HANYA teks deskriptif di satu cell (sub-header)
+    if (nonEmpty.length === 1 && isNaN(nonEmpty[0].trim())) continue;
+
     const obj = { no: no++ };
     headers.forEach((key, idx) => {
       if (key) obj[key] = vals[idx]?.trim() || '';
@@ -840,15 +859,23 @@ function buildRows(parsed, startIdx, headers, sheetType) {
     obj.supplier      = obj.supplier || obj.nama_supplier || '';
     obj.cash_out      = obj.cash_out || obj.cash || obj.cashout || obj.nilai || '';
 
-    // Status: Format B punya status_material, Format A punya status
-    const rawStatus = obj.status_material || obj.status || obj.indikator_stok || '';
-    obj.status = normalizeStatus(rawStatus);
-    obj._raw_status = rawStatus; // simpan raw untuk display
+    // Status: ambil dari kolom yang tepat per sheet type
+    let rawStatus = '';
+    if (sheetType === 'rakap_b') {
+      rawStatus = obj.status_material || obj.status || '';
+    } else if (sheetType === 'report') {
+      rawStatus = obj.indikator_stok || obj.status || '';
+    } else {
+      rawStatus = obj.status || obj.indikator_stok || '';
+    }
 
-    // Skip baris kategori / divider
+    obj.status      = normalizeStatus(rawStatus);
+    obj._raw_status = rawStatus;
+
+    // Skip baris kosong dari semua field penting
     if (!obj.nama_material && !obj.supplier && !rawStatus) continue;
     // Skip baris total/rekapitulasi supplier
-    if ((obj.supplier||'').toLowerCase().includes('kapitulasi')) continue;
+    if ((obj.supplier || '').toLowerCase().includes('kapitulasi')) continue;
 
     rows.push(obj);
   }
