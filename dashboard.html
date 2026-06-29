@@ -216,6 +216,7 @@
     <div class="snav active" onclick="showView('overview')" id="nav-overview">▦ Overview Semua</div>
     <div class="snav" onclick="showView('material')" id="nav-material">≡ Material</div>
     <div class="snav" onclick="showView('supplier')" id="nav-supplier">$ Supplier</div>
+    <div class="snav" onclick="showView('report')" id="nav-report">◎ Report Material</div>
     <div class="sidebar-sep"></div>
     <div class="sidebar-label">Proyek Aktif</div>
     <div id="projectList"></div>
@@ -328,8 +329,49 @@
       </div>
     </div>
 
-  </div>
-</div>
+    <!-- REPORT MATERIAL -->
+    <div id="viewReport" class="hidden">
+      <div class="page-header">
+        <div>
+          <div class="page-title" id="reportTitle">Report Material Proyek</div>
+          <div class="page-sub">Volume: PM+QC · ONSITE · DEVIASI · Indikator Stok</div>
+        </div>
+        <div class="hactions">
+          <a href="#" id="editReportLink" class="btn-top teal" target="_blank">↗ Buka Sheets</a>
+        </div>
+      </div>
+      <div class="frow">
+        <select class="fsel" id="filterReportProject" onchange="applyReportFilters()">
+          <option value="">Semua Proyek</option>
+        </select>
+        <select class="fsel" id="filterReportStok" onchange="applyReportFilters()">
+          <option value="">Semua Indikator</option>
+          <option value="CLOSED">Stock Aman</option>
+          <option value="OPEN">Stock Tipis</option>
+          <option value="ERROR">Stock Habis / Error</option>
+        </select>
+        <input class="fsrch" type="text" placeholder="Cari material…" id="searchReport" oninput="applyReportFilters()">
+      </div>
+      <div class="twrap tscroll">
+        <table>
+          <thead><tr>
+            <th>No</th><th>Material</th>
+            <th class="nr">PM+QC</th><th class="nr">ONSITE</th>
+            <th class="nr">Deviasi</th><th class="nr">Bon Mat.</th>
+            <th class="nr">Stok</th>
+            <th>Indikator</th><th>Satuan</th>
+          </tr></thead>
+          <tbody id="reportBody">
+            <tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:28px">Menunggu data…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:4px;">
+        <div class="card green" style="flex:1;"><div class="card-label">Stock Aman</div><div class="card-value" id="rep-aman">—</div></div>
+        <div class="card amber" style="flex:1;"><div class="card-label">Stock Tipis</div><div class="card-value" id="rep-tipis">—</div></div>
+        <div class="card red" style="flex:1;"><div class="card-label">Stock Habis / Error</div><div class="card-value" id="rep-habis">—</div></div>
+      </div>
+    </div>
 
 <!-- SETUP MODAL -->
 <div class="overlay" id="setupModal">
@@ -372,7 +414,7 @@
 <script>
 // ── STATE ────────────────────────────────────────────
 let PROJECTS = [];
-let data = { rakap: [], supplier: [] };
+let data = { rakap: [], supplier: [], report: [] };
 let localOverrides = {};
 let activeView = 'empty';
 let activeProjectId = null;
@@ -436,23 +478,33 @@ async function fetchAllData() {
   const dot = document.getElementById('syncDot');
   const lbl = document.getElementById('syncLabel');
   dot.className = 'sync-dot dim'; lbl.textContent = 'Mengambil data…';
-  data.rakap = []; data.supplier = [];
+  data.rakap = []; data.supplier = []; data.report = [];
   let ok = 0;
 
   await Promise.all(PROJECTS.map(async p => {
+    // RAKAP_PM_PO_SJ
     if (p.urlRakap) {
       try {
-        const rows = parseCSV(await (await fetch(p.urlRakap)).text());
+        const rows = parseCSV(await (await fetch(p.urlRakap)).text(), 'rakap');
         rows.forEach(r => { r.project_id = p.id; r.project_name = p.name; });
         data.rakap.push(...rows); ok++;
       } catch(e) { console.warn('RAKAP fail', p.name, e); }
     }
+    // REKAP_SUPPLIER
     if (p.urlSupplier) {
       try {
-        const rows = parseCSV(await (await fetch(p.urlSupplier)).text());
+        const rows = parseCSV(await (await fetch(p.urlSupplier)).text(), 'supplier');
         rows.forEach(r => { r.project_id = p.id; r.project_name = p.name; });
         data.supplier.push(...rows);
       } catch(e) { console.warn('SUPPLIER fail', p.name, e); }
+    }
+    // REPORT_MATERIAL_PROYEK
+    if (p.urlReport) {
+      try {
+        const rows = parseCSV(await (await fetch(p.urlReport)).text(), 'report');
+        rows.forEach(r => { r.project_id = p.id; r.project_name = p.name; });
+        data.report.push(...rows);
+      } catch(e) { console.warn('REPORT fail', p.name, e); }
     }
   }));
 
@@ -466,23 +518,122 @@ async function fetchAllData() {
   renderAll();
 }
 
-// ── CSV ──────────────────────────────────────────────
-function parseCSV(text) {
-  const lines = text.split('\n').filter(l => l.trim());
-  if (lines.length < 2) return [];
-  const headers = csvLine(lines[0]);
-  return lines.slice(1).map((line, i) => {
-    const vals = csvLine(line);
-    const obj = { no: i + 1 };
-    headers.forEach((h, idx) => {
-      const key = h.trim().toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
-      obj[key] = vals[idx]?.trim() || '';
+// ── CSV PARSER (SMART — tahan messy header) ──────────
+/*
+  Strategi:
+  1. Split semua baris, parse tiap baris jadi array cell
+  2. Scan dari atas: skip baris yang sebagian besar kosong atau
+     baris yang cell pertamanya adalah angka murni (baris data)
+  3. Baris header = baris pertama yang punya >= 4 cell berisi teks
+     DAN bukan semua angka
+  4. Setelah header ketemu, baca baris data di bawahnya
+  5. Normalize nama kolom: map berbagai variasi ke key standar
+*/
+function parseCSV(text, sheetType) {
+  const rawLines = text.split('\n');
+  const parsed = rawLines.map(l => csvLine(l));
+
+  // Cari baris header: min 4 cell non-kosong, mayoritas teks bukan angka
+  let headerIdx = -1;
+  for (let i = 0; i < Math.min(parsed.length, 20); i++) {
+    const cells = parsed[i];
+    const nonEmpty = cells.filter(c => c.trim() !== '');
+    if (nonEmpty.length < 3) continue;
+    const textCells = nonEmpty.filter(c => isNaN(c.trim()) && c.trim() !== '');
+    // Header jika >60% cell adalah teks
+    if (textCells.length / nonEmpty.length >= 0.6) {
+      headerIdx = i;
+      break;
+    }
+  }
+
+  if (headerIdx === -1) return []; // Tidak ketemu header
+
+  const rawHeaders = parsed[headerIdx];
+
+  // Normalize header ke key standar
+  const headers = rawHeaders.map(h => normalizeKey(h, sheetType));
+
+  const rows = [];
+  let dataRowNo = 1;
+
+  for (let i = headerIdx + 1; i < parsed.length; i++) {
+    const vals = parsed[i];
+    const nonEmpty = vals.filter(v => v.trim() !== '');
+    if (nonEmpty.length < 2) continue; // skip baris kosong / divider
+
+    const obj = { no: dataRowNo++ };
+    headers.forEach((key, idx) => {
+      if (key) obj[key] = vals[idx]?.trim() || '';
     });
+
+    // Pastikan field standar selalu ada
     obj.nama_material = obj.nama_material || obj.item_material || obj.material || obj.nama || '';
-    obj.status = (obj.status||'').toUpperCase()
-      .replace('CLOSED (✓)','CLOSED').replace('CLOSED(✓)','CLOSED').trim();
-    return obj;
-  });
+    obj.supplier      = obj.supplier || obj.nama_supplier || '';
+    obj.status        = normalizeStatus(obj.status || obj.indikator_stok || '');
+    obj.cash_out      = obj.cash_out || obj.cash || obj.cashout || obj.nilai || '';
+
+    // Skip baris kategori / sub-header (misalnya baris "A DATA REKAP MATERIAL")
+    if (obj.nama_material === '' && obj.supplier === '' && obj.status === '') continue;
+
+    rows.push(obj);
+  }
+  return rows;
+}
+
+// Map berbagai nama kolom dari sheet ke key standar
+function normalizeKey(raw, sheetType) {
+  const h = raw.trim().toLowerCase()
+    .replace(/[\r\n]+/g,' ')
+    .replace(/\s+/g,' ');
+
+  // MATERIAL name
+  if (/item.material|nama.material|^material$|^nama$/.test(h)) return 'nama_material';
+  // Supplier
+  if (/^supplier|nama.supplier/.test(h)) return 'supplier';
+  // Tanggal
+  if (/tgl.perm|tanggal.perm/.test(h)) return 'tgl_permintaan';
+  // ID PM
+  if (/^id.?pm$|^id_pm$/.test(h)) return 'id_pm';
+  // ID PO
+  if (/^id.?po$|^id_po$/.test(h)) return 'id_po';
+
+  // RAKAP columns
+  if (/total.pm|^pm$/.test(h)) return 'total_pm';
+  if (/total.po|^po$/.test(h)) return 'total_po';
+  if (/total.sj|^sj$/.test(h)) return 'total_sj';
+  if (/sisa.belum|sisa/.test(h)) return 'sisa_belum_dikirim';
+  if (/^status$/.test(h)) return 'status';
+
+  // REPORT columns
+  if (/pm.*qc|pm\+qc/.test(h)) return 'pm_qc';
+  if (/^onsite$/.test(h)) return 'onsite';
+  if (/deviasi/.test(h)) return 'deviasi';
+  if (/bon.mat/.test(h)) return 'bon_material';
+  if (/stok.mat/.test(h)) return 'stok_material';
+  if (/indikator.stok/.test(h)) return 'indikator_stok';
+  if (/satuan/.test(h)) return 'satuan';
+  if (/keterangan|ket\.?$/.test(h)) return 'keterangan';
+
+  // SUPPLIER columns
+  if (/cash.out|cashout|nilai/.test(h)) return 'cash_out';
+
+  // Fallback: buat key dari raw (hilangkan karakter aneh)
+  const fallback = h.replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
+  return fallback || null;
+}
+
+// Normalize status dari berbagai format
+function normalizeStatus(raw) {
+  const s = raw.trim().toUpperCase();
+  if (s.includes('CLOSED') || s.includes('✓') || s === 'CLOSED (✓)') return 'CLOSED';
+  if (s === 'OPEN') return 'OPEN';
+  if (s.includes('ERROR') || s.includes('ERR')) return 'ERROR';
+  // Dari REPORT_MATERIAL: "Stock Aman" → CLOSED, "Stock Tipis" → OPEN, "Stock Habis/Error(X)" → ERROR
+  if (/stock.aman|aman/.test(s)) return 'CLOSED';
+  if (/stock.tipis|tipis/.test(s)) return 'OPEN';
+  if (/stock.habis|habis|error/.test(s)) return 'ERROR';
+  return s || '';
 }
 
 function csvLine(line) {
@@ -501,16 +652,17 @@ function renderAll() {
   renderOverview();
   applyFilters();
   applySupplierFilters();
+  applyReportFilters();
   populateFilters();
 }
 
 // ── VIEWS ────────────────────────────────────────────
 function showView(v) {
-  ['empty','overview','material','supplier'].forEach(x => {
+  ['empty','overview','material','supplier','report'].forEach(x => {
     document.getElementById('view'+x.charAt(0).toUpperCase()+x.slice(1)).classList.add('hidden');
   });
   document.getElementById('view'+v.charAt(0).toUpperCase()+v.slice(1)).classList.remove('hidden');
-  ['overview','material','supplier'].forEach(x => {
+  ['overview','material','supplier','report'].forEach(x => {
     document.getElementById('nav-'+x)?.classList.remove('active');
   });
   document.getElementById('nav-'+v)?.classList.add('active');
@@ -652,9 +804,60 @@ function applySupplierFilters() {
   document.getElementById('totalCashOutSub').textContent = `dari ${rows.length} entri`;
 }
 
+// ── REPORT TABLE ─────────────────────────────────────
+function applyReportFilters() {
+  const projId = document.getElementById('filterReportProject').value;
+  const stok   = document.getElementById('filterReportStok').value;
+  const search = document.getElementById('searchReport').value.toLowerCase();
+
+  let rows = data.report;
+  if (projId) rows = rows.filter(r => String(r.project_id)===String(projId));
+  if (stok)   rows = rows.filter(r => getStatus(r) === stok);
+  if (search) rows = rows.filter(r => (r.nama_material||'').toLowerCase().includes(search));
+
+  const tb = document.getElementById('reportBody');
+  tb.innerHTML = '';
+
+  let cAman=0, cTipis=0, cHabis=0;
+
+  if (!rows.length) {
+    tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:28px">Tidak ada data</td></tr>';
+  } else {
+    rows.forEach((row, i) => {
+      const st = getStatus(row);
+      const sc = st==='CLOSED'?'closed':st==='OPEN'?'open':st==='ERROR'?'error':'';
+      const sl = st==='CLOSED'?'Stock Aman':st==='OPEN'?'Stock Tipis':st==='ERROR'?'Stock Habis':'—';
+      if (st==='CLOSED') cAman++;
+      else if (st==='OPEN') cTipis++;
+      else if (st==='ERROR') cHabis++;
+
+      const dev = parseFloat(row.deviasi)||0;
+      const tr = document.createElement('tr');
+      const safeName = (row.nama_material||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      tr.innerHTML = `
+        <td class="mu">${i+1}</td>
+        <td><strong>${row.nama_material||'—'}</strong>
+          ${!projId&&row.project_name?`<div style="font-size:9px;color:var(--text-dim);margin-top:1px">${row.project_name}</div>`:''}
+        </td>
+        <td class="nr">${row.pm_qc||'—'}</td>
+        <td class="nr">${row.onsite||'—'}</td>
+        <td class="nr" style="color:${dev<0?'var(--red)':dev>0?'var(--green)':'var(--text-muted)'}">${row.deviasi||'—'}</td>
+        <td class="nr">${row.bon_material||'—'}</td>
+        <td class="nr">${row.stok_material||'—'}</td>
+        <td>${sc ? `<div class="badge ${sc}"><div class="bdot"></div>${sl}</div>` : '—'}</td>
+        <td class="mu" style="font-size:10px">${row.satuan||'—'}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+
+  document.getElementById('rep-aman').textContent  = cAman;
+  document.getElementById('rep-tipis').textContent = cTipis;
+  document.getElementById('rep-habis').textContent = cHabis;
+}
+
 // ── FILTERS POPULATE ─────────────────────────────────
 function populateFilters() {
-  ['filterProject','filterSupplierProject'].forEach(id => {
+  ['filterProject','filterSupplierProject','filterReportProject'].forEach(id => {
     const sel = document.getElementById(id);
     const cur = sel.value;
     sel.innerHTML = '<option value="">Semua Proyek</option>';
@@ -713,6 +916,10 @@ function renderSetupList() {
         <label class="mlabel">URL CSV — Sheet REKAP_SUPPLIER</label>
         <input class="minput" type="url" placeholder="https://docs.google.com/…&output=csv" value="${p.urlSupplier||''}"
           oninput="draftProjects[${i}].urlSupplier=this.value">
+
+        <label class="mlabel">URL CSV — Sheet REPORT_MATERIAL_PROYEK</label>
+        <input class="minput" type="url" placeholder="https://docs.google.com/…&output=csv" value="${p.urlReport||''}"
+          oninput="draftProjects[${i}].urlReport=this.value">
 
         <label class="mlabel">URL Google Sheets (untuk tombol Buka Sheets)</label>
         <input class="minput" type="url" placeholder="https://docs.google.com/spreadsheets/d/…/edit" value="${p.urlSheets||''}"
