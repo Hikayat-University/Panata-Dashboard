@@ -708,9 +708,22 @@ async function fetchAllData() {
     // REPORT_MATERIAL_PROYEK
     if (p.urlReport) {
       try {
-        const rows = parseCSV(await (await fetch(p.urlReport)).text(), 'report', p.format||'A');
+        const rawText = await (await fetch(p.urlReport)).text();
+        // DEBUG: simpan raw untuk inspeksi
+        const lines = rawText.split('\n');
+        console.group('DEBUG REPORT: ' + p.name);
+        console.log('Total baris CSV:', lines.length);
+        console.log('20 baris pertama:');
+        lines.slice(0, 20).forEach((l, i) => console.log(`[${i}]`, l));
+        console.groupEnd();
+
+        const rows = parseCSV(rawText, 'report', p.format||'A');
+        console.log('Hasil parse report:', rows.length, 'rows', rows.slice(0,3));
         rows.forEach(r => { r.project_id = p.id; r.project_name = p.name; });
         data.report.push(...rows);
+
+        // Tampilkan debug info di UI
+        showDebugInfo(p.name, lines, rows);
       } catch(e) { console.warn('REPORT fail', p.name, e); }
     }
   }));
@@ -1248,7 +1261,42 @@ function applyReportFilters() {
   document.getElementById('rep-habis').textContent = cHabis;
 }
 
-// ── FILTERS POPULATE ─────────────────────────────────
+// ── DEBUG ─────────────────────────────────────────────
+function showDebugInfo(projName, lines, rows) {
+  const panel = document.getElementById('debugPanel');
+  if (!panel) return;
+  panel.style.display = 'block';
+
+  // Cari baris yang jadi header (baris pertama dengan banyak cell teks)
+  const parsed = lines.map(l => csvLine(l));
+  let headerIdx = '?';
+  for (let i = 0; i < Math.min(parsed.length, 25); i++) {
+    const ne = parsed[i].filter(c => c.trim());
+    const tx = ne.filter(c => isNaN(c.trim()) && c.trim());
+    if (ne.length >= 3 && tx.length / ne.length >= 0.6) {
+      const first = ne[0] || '';
+      if (!/^[A-Za-z]$/.test(first.trim()) || ne.length > 3) {
+        headerIdx = i; break;
+      }
+    }
+  }
+
+  panel.innerHTML = `
+    <div style="background:var(--surface2);border:1px solid var(--amber);border-left:3px solid var(--amber);border-radius:3px;padding:14px;margin-bottom:16px;font-size:11px;">
+      <div style="font-weight:600;color:var(--amber);margin-bottom:8px;">🔍 Debug: ${projName}</div>
+      <div style="color:var(--text-muted);margin-bottom:4px;">Total baris CSV: <strong style="color:var(--text)">${lines.length}</strong> &nbsp;|&nbsp; Header ditemukan di baris: <strong style="color:var(--text)">${headerIdx}</strong> &nbsp;|&nbsp; Rows terparsing: <strong style="color:${rows.length > 0 ? 'var(--green)' : 'var(--red)'}">${rows.length}</strong></div>
+      <div style="margin-top:10px;color:var(--text-muted);margin-bottom:4px;">20 baris pertama CSV (raw):</div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:10px;overflow-x:auto;max-height:220px;overflow-y:auto;">
+        <pre style="font-size:9px;line-height:1.6;color:var(--text-muted);white-space:pre;">${lines.slice(0,20).map((l,i)=>`[${String(i).padStart(2,'0')}] ${l.substring(0,120)}`).join('\n')}</pre>
+      </div>
+      ${rows.length > 0 ? `
+      <div style="margin-top:10px;color:var(--text-muted);margin-bottom:4px;">3 baris pertama hasil parse:</div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:10px;overflow-x:auto;">
+        <pre style="font-size:9px;line-height:1.6;color:var(--green);white-space:pre;">${JSON.stringify(rows.slice(0,3), null, 2).substring(0,800)}</pre>
+      </div>` : `<div style="color:var(--red);margin-top:8px;">⚠ Parser menghasilkan 0 rows. Lihat raw CSV di atas untuk diagnosa.</div>`}
+      <button onclick="document.getElementById('debugPanel').style.display='none'" style="margin-top:10px;padding:5px 12px;background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:2px;cursor:pointer;font-size:10px;">Tutup debug panel</button>
+    </div>`;
+}
 function populateFilters() {
   ['filterProject','filterSupplierProject','filterReportProject'].forEach(id => {
     const sel = document.getElementById(id);
