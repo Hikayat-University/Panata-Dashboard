@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panata — Dashboard Format B</title>
+<title>Panata — Dashboard Proyek B</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,200;0,9..144,300;1,9..144,200&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -235,7 +235,7 @@
     </div>
     <div>
       <div class="brand-name">Panata Bayu Nugraha</div>
-      <div class="brand-sub">Dashboard — Format B · PM → PO → SJ</div>
+      <div class="brand-sub">Dashboard — Proyek B · PM → PO → SJ</div>
     </div>
   </a>
   <div class="topbar-right">
@@ -244,7 +244,7 @@
       <span id="syncLabel">Menginisialisasi…</span>
     </div>
     <div class="date-badge" id="dateBadge">—</div>
-    <a href="dashboard.html" class="btn-top">← Format A</a>
+    <a href="dashboard.html" class="btn-top">← Proyek A</a>
     <a href="index.html" class="btn-top">← Beranda</a>
     <button class="btn-top teal" onclick="openSetupModal()">⚙ Kelola Proyek</button>
   </div>
@@ -255,7 +255,7 @@
 
   <!-- SIDEBAR -->
   <div class="sidebar">
-    <div class="sidebar-label">Proyek Format B</div>
+    <div class="sidebar-label">Proyek B</div>
     <div class="sidebar-all active" id="navAll" onclick="filterByProject(null)">▦ Semua Proyek</div>
     <div class="sidebar-sep"></div>
     <div id="projectList"></div>
@@ -268,7 +268,7 @@
     <!-- EMPTY -->
     <div id="viewEmpty" class="estate">
       <div class="estate-icon">📋</div>
-      <div style="font-family:var(--font-display);font-size:22px;font-weight:300;">Belum ada proyek Format B</div>
+      <div style="font-family:var(--font-display);font-size:22px;font-weight:300;">Belum ada proyek terdaftar</div>
       <div style="font-size:12px;color:var(--text-muted);max-width:340px;line-height:1.7;">Tambahkan proyek dan hubungkan sheet RAKAP_PM_PO_SJ via URL CSV.</div>
       <button class="btn btn-primary" onclick="openSetupModal()">Mulai Setup</button>
     </div>
@@ -280,7 +280,7 @@
       <div class="page-header">
         <div>
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-            <span class="fmt-badge">Format B</span>
+            <span class="fmt-badge">Proyek B</span>
           </div>
           <div class="page-title" id="pageTitle">Overview <em>Semua Proyek</em></div>
           <div class="page-sub" id="pageSub">PM → PO → SJ · Tracking per permintaan material</div>
@@ -378,7 +378,7 @@
 <!-- SETUP MODAL -->
 <div class="overlay" id="setupModal">
   <div class="modal">
-    <div class="modal-title">⚙ Kelola Proyek Format B</div>
+    <div class="modal-title">⚙ Kelola Proyek B</div>
     <div class="modal-sub">
       Hubungkan sheet <strong>RAKAP_PM_PO_SJ</strong> tiap proyek via URL CSV.<br>
       <strong>Cara:</strong> Buka Sheets → File → Share → Publish to web → pilih sheet → CSV → Publish → copy URL.
