@@ -652,6 +652,7 @@ function renderSidebar() {
   const list = document.getElementById('projectList');
   list.innerHTML = '';
   PROJECTS.forEach(p => {
+    const isB = (p.format || 'A') === 'B';
     const s = stats(p.id);
     const el = document.createElement('div');
     el.className = 'pitem' + (activeProjectId === p.id ? ' active' : '');
@@ -660,9 +661,12 @@ function renderSidebar() {
       <div class="pitem-name">${p.name}</div>
       <div class="pitem-meta">${p.location || ''}</div>
       <div class="pitem-tags">
-        ${s.open   > 0 ? `<span class="ptag open">${s.open} open</span>` : ''}
-        ${s.error  > 0 ? `<span class="ptag error">${s.error} err</span>` : ''}
-        ${s.closed > 0 ? `<span class="ptag closed">${s.closed} ✓</span>` : ''}
+        ${isB
+          ? `<span class="ptag" style="background:rgba(100,120,180,0.15);color:#7B96C8;border:1px solid rgba(100,120,180,0.25);">Format B</span>`
+          : `${s.open   > 0 ? `<span class="ptag open">${s.open} open</span>` : ''}
+             ${s.error  > 0 ? `<span class="ptag error">${s.error} err</span>` : ''}
+             ${s.closed > 0 ? `<span class="ptag closed">${s.closed} ✓</span>` : ''}`
+        }
       </div>`;
     list.appendChild(el);
   });
@@ -1006,6 +1010,16 @@ function showView(v) {
   });
   document.getElementById('nav-'+v)?.classList.add('active');
   activeView = v;
+  // Restore elemen yang mungkin disembunyikan oleh showFormatBComingSoon
+  const frow = document.querySelector('#viewMaterial .frow');
+  const hactions = document.querySelector('#viewMaterial .hactions');
+  if (frow) frow.style.display = '';
+  if (hactions) hactions.style.display = '';
+  if (v === 'report') {
+    // Reset filter project supaya semua proyek tampil
+    document.getElementById('filterReportProject').value = '';
+    applyReportFilters();
+  }
 }
 
 function drillDown(pid) {
@@ -1014,15 +1028,63 @@ function drillDown(pid) {
   const idx = PROJECTS.findIndex(p => p.id === pid);
   document.querySelectorAll('.pitem')[idx]?.classList.add('active');
   const p = PROJECTS.find(x => x.id === pid);
+
+  // Format B — tampilkan coming soon, bukan tabel kosong
+  if ((p?.format || 'A') === 'B') {
+    showFormatBComingSoon(p);
+    return;
+  }
+
   document.getElementById('materialTitle').textContent = p?.name || 'Material';
   document.getElementById('materialSub').textContent = p?.location || 'PM → PO → SJ';
   if (p?.urlSheets) {
     document.getElementById('editMaterialLink').href = p.urlSheets;
     document.getElementById('editSupplierLink').href = p.urlSheets;
+    document.getElementById('editReportLink').href = p.urlSheets;
   }
   document.getElementById('filterProject').value = pid;
   showView('material');
   applyFilters();
+}
+
+function showFormatBComingSoon(p) {
+  // Tampilkan di view material dengan pesan khusus
+  ['empty','overview','material','supplier','report'].forEach(x => {
+    document.getElementById('view'+x.charAt(0).toUpperCase()+x.slice(1)).classList.add('hidden');
+  });
+  ['overview','material','supplier','report'].forEach(x => {
+    document.getElementById('nav-'+x)?.classList.remove('active');
+  });
+
+  // Inject coming soon ke dalam viewMaterial sementara
+  document.getElementById('viewMaterial').classList.remove('hidden');
+  document.getElementById('nav-material').classList.add('active');
+
+  document.getElementById('materialTitle').innerHTML =
+    `${p?.name || 'Proyek'} <span style="font-size:11px;font-weight:400;background:rgba(100,120,180,0.12);color:#7B96C8;border:1px solid rgba(100,120,180,0.25);padding:2px 8px;border-radius:2px;vertical-align:middle;margin-left:6px;">Format B</span>`;
+  document.getElementById('materialSub').textContent = p?.location || '';
+
+  const tb = document.getElementById('materialBody');
+  tb.innerHTML = `
+    <tr><td colspan="8" style="padding:48px 24px;text-align:center;">
+      <div style="display:inline-flex;flex-direction:column;align-items:center;gap:14px;max-width:380px;">
+        <div style="width:48px;height:48px;border-radius:3px;background:rgba(100,120,180,0.1);border:1px solid rgba(100,120,180,0.25);display:flex;align-items:center;justify-content:center;font-size:20px;">⏳</div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:300;color:var(--text);">Dashboard v2 — Format B</div>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.7;">
+          Data proyek ini menggunakan Format B yang lebih detail —
+          tracking per PM → PO → SJ, durasi, dan status per stage.
+          Dashboard khusus untuk format ini sedang disiapkan.
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
+          ${p?.urlSheets ? `<a href="${p.urlSheets}" target="_blank" class="btn-top teal" style="text-decoration:none;">↗ Lihat data di Sheets</a>` : ''}
+          <button class="btn-top" onclick="showView('overview')">← Kembali ke Overview</button>
+        </div>
+      </div>
+    </td></tr>`;
+
+  // Sembunyikan filter row untuk Format B
+  document.querySelector('#viewMaterial .frow').style.display = 'none';
+  document.querySelector('#viewMaterial .hactions').style.display = 'none';
 }
 
 // ── OVERVIEW ─────────────────────────────────────────
@@ -1048,22 +1110,37 @@ function renderOverview() {
     return;
   }
   PROJECTS.forEach(p => {
+    const isB = (p.format || 'A') === 'B';
     const s = stats(p.id);
     const total = s.open+s.closed+s.error;
     const pct = total > 0 ? Math.round((s.closed/total)*100) : 0;
     const c = document.createElement('div');
     c.className = 'pcard'+(activeProjectId===p.id?' active':'');
     c.onclick = () => drillDown(p.id);
-    c.innerHTML = `
-      <div class="pcard-loc">${p.location||'PROYEK'}</div>
-      <div class="pcard-name">${p.name}</div>
-      <div class="pstats">
-        <div class="pstat open"><div class="pstat-num">${s.open}</div><div class="pstat-label">Open</div></div>
-        <div class="pstat closed"><div class="pstat-num">${s.closed}</div><div class="pstat-label">Done</div></div>
-        ${s.error>0?`<div class="pstat error"><div class="pstat-num">${s.error}</div><div class="pstat-label">Err</div></div>`:''}
-      </div>
-      <div class="pprog"><div class="pprog-fill" style="width:${pct}%"></div></div>
-      <div style="margin-top:4px;font-size:9px;color:var(--text-muted)">${pct}% selesai · ${total} item</div>`;
+
+    if (isB) {
+      c.style.cssText += 'border-color:rgba(100,120,180,0.25);opacity:0.75;';
+      c.innerHTML = `
+        <div class="pcard-loc">${p.location||'PROYEK'}</div>
+        <div class="pcard-name">${p.name}</div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:7px;">
+          <span style="font-size:9px;padding:2px 8px;border-radius:2px;font-weight:600;background:rgba(100,120,180,0.12);color:#7B96C8;border:1px solid rgba(100,120,180,0.25);">Format B</span>
+          <span style="font-size:9px;color:var(--text-dim);">Dashboard v2</span>
+        </div>
+        <div class="pprog" style="margin-top:10px;"><div class="pprog-fill" style="width:0%;background:rgba(100,120,180,0.3);"></div></div>
+        <div style="margin-top:4px;font-size:9px;color:var(--text-dim)">Dashboard khusus sedang disiapkan</div>`;
+    } else {
+      c.innerHTML = `
+        <div class="pcard-loc">${p.location||'PROYEK'}</div>
+        <div class="pcard-name">${p.name}</div>
+        <div class="pstats">
+          <div class="pstat open"><div class="pstat-num">${s.open}</div><div class="pstat-label">Open</div></div>
+          <div class="pstat closed"><div class="pstat-num">${s.closed}</div><div class="pstat-label">Done</div></div>
+          ${s.error>0?`<div class="pstat error"><div class="pstat-num">${s.error}</div><div class="pstat-label">Err</div></div>`:''}
+        </div>
+        <div class="pprog"><div class="pprog-fill" style="width:${pct}%"></div></div>
+        <div style="margin-top:4px;font-size:9px;color:var(--text-muted)">${pct}% selesai · ${total} item</div>`;
+    }
     grid.appendChild(c);
   });
 }
@@ -1224,7 +1301,7 @@ function applyReportFilters() {
 
   let rows = data.report;
   if (projId) rows = rows.filter(r => String(r.project_id)===String(projId));
-  if (stok)   rows = rows.filter(r => getStatus(r) === stok);
+  if (stok)   rows = rows.filter(r => r.status === stok);
   if (search) rows = rows.filter(r => (r.nama_material||'').toLowerCase().includes(search));
 
   const tb = document.getElementById('reportBody');
@@ -1233,17 +1310,24 @@ function applyReportFilters() {
   let cAman=0, cTipis=0, cHabis=0;
 
   if (!rows.length) {
-    tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:28px">Tidak ada data</td></tr>';
+    // Berikan info lebih berguna: apakah data.report memang kosong atau hanya filter terlalu ketat
+    const totalReport = data.report.length;
+    const msg = totalReport === 0
+      ? 'URL Sheet REPORT_MATERIAL_PROYEK belum diisi di Kelola Proyek'
+      : `Tidak ada data untuk filter ini (total tersedia: ${totalReport} item)`;
+    tb.innerHTML=`<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:28px">${msg}</td></tr>`;
   } else {
     rows.forEach((row, i) => {
-      const st = getStatus(row);
+      const st = row.status || '';
       const sc = st==='CLOSED'?'closed':st==='OPEN'?'open':st==='ERROR'?'error':'';
-      const sl = st==='CLOSED'?'Stock Aman':st==='OPEN'?'Stock Tipis':st==='ERROR'?'Stock Habis':'—';
+      const sl = st==='CLOSED'?'Stock Aman':st==='OPEN'?'Stock Tipis':st==='ERROR'?'Stock Habis':row._raw_status||'—';
       if (st==='CLOSED') cAman++;
       else if (st==='OPEN') cTipis++;
       else if (st==='ERROR') cHabis++;
 
       const dev = parseFloat(row.deviasi)||0;
+      // pm_qc: coba berbagai field
+      const pmQc = row.pm_qc || row.volume || row.pm || '—';
       const tr = document.createElement('tr');
       const safeName = (row.nama_material||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
       tr.innerHTML = `
@@ -1251,12 +1335,12 @@ function applyReportFilters() {
         <td><strong>${row.nama_material||'—'}</strong>
           ${!projId&&row.project_name?`<div style="font-size:9px;color:var(--text-dim);margin-top:1px">${row.project_name}</div>`:''}
         </td>
-        <td class="nr">${row.pm_qc||'—'}</td>
+        <td class="nr">${pmQc}</td>
         <td class="nr">${row.onsite||'—'}</td>
         <td class="nr" style="color:${dev<0?'var(--red)':dev>0?'var(--green)':'var(--text-muted)'}">${row.deviasi||'—'}</td>
         <td class="nr">${row.bon_material||'—'}</td>
         <td class="nr">${row.stok_material||'—'}</td>
-        <td>${sc ? `<div class="badge ${sc}"><div class="bdot"></div>${sl}</div>` : '—'}</td>
+        <td>${sc ? `<div class="badge ${sc}" onclick="openStatusModal(${row.project_id},'${row.no}','${safeName}','${st}')"><div class="bdot"></div>${sl}</div>` : (row._raw_status||'—')}</td>
         <td class="mu" style="font-size:10px">${row.satuan||'—'}</td>`;
       tb.appendChild(tr);
     });
