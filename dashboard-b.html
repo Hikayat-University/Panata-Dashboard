@@ -532,74 +532,98 @@ async function fetchAllData() {
 }
 
 // ── PARSER FORMAT B ────────────────────
+// Struktur real (dari analisis xlsx):
+// Baris ~14: header grup — No, Permintaan Material(PM), PO, Durasi, Supplier,
+//            Nama Material, Deskripsi, Katagori, Volume, Satuan, Setatus, Setatus Material
+// Baris ~15: sub-header — ID_PM, Tanggal, ID_PO, Tanggal, PM, PO, SJ, DEV.PM-PO, DEV.PO-SJ, PM-PO, PO-SJ
+// Baris ~16: baris filter "< FILTER" — harus diskip
+// Baris ~17+: data aktual
+// Kolom mulai dari index 2 (kolom A,B kosong karena merged branding)
+// Col index: 2=No, 3=ID_PM, 4=tgl_pm, 5=ID_PO, 6=tgl_po, 7=Durasi, 8=Supplier,
+//            9=Nama Material, 10=Deskripsi, 11=Katagori, 12=vol_pm, 13=vol_po,
+//            14=vol_sj, 15=dev_pm_po, 16=dev_po_sj, 17=Satuan,
+//            18=status_pm_po, 19=status_po_sj, 20=status_material
+
 function parseFormatB(text) {
   const lines = text.split('\n');
   const parsed = lines.map(l => csvLine(l));
 
-  // Cari header: baris yang mengandung "Permintaan Material" atau "Purchasing Order"
-  // atau mengandung "ID_PM" dan "Nama Material"
+  // Cari header grup: baris yang mengandung "Nama Material" + "Supplier" atau "Durasi"
   let grpIdx = -1;
+  let subIdx = -1;
+
   for (let i = 0; i < Math.min(parsed.length, 30); i++) {
-    const j = parsed[i].join(' ').toLowerCase();
-    if (j.includes('permintaan material') || j.includes('purchasing order') ||
-        (j.includes('id') && j.includes('pm') && j.includes('nama material'))) {
-      grpIdx = i; break;
+    const j = parsed[i].join('||').toLowerCase();
+    // Header grup: ada "nama material" dan ("supplier" atau "durasi")
+    if (j.includes('nama material') && (j.includes('supplier') || j.includes('durasi'))) {
+      grpIdx = i;
+    }
+    // Sub-header: ada "id_pm" atau "id pm" secara eksplisit
+    if (j.includes('id_pm') || /\|\|id pm\|\|/.test(j) || j.includes('id_po')) {
+      subIdx = i;
+      break;
     }
   }
 
-  // Fallback: cari baris dengan ID_PM dan Supplier
-  if (grpIdx === -1) {
-    for (let i = 0; i < Math.min(parsed.length, 30); i++) {
-      const j = parsed[i].join(' ').toLowerCase();
-      if (j.includes('id_pm') || j.includes('id pm')) { grpIdx = i; break; }
-    }
+  // Kalau ketemu kedua baris header
+  if (grpIdx !== -1 && subIdx !== -1 && subIdx === grpIdx + 1) {
+    return parseWithDualHeader(parsed, grpIdx, subIdx);
   }
 
-  if (grpIdx === -1) return [];
+  // Fallback: hanya satu baris header
+  const hIdx = subIdx !== -1 ? subIdx : grpIdx;
+  if (hIdx === -1) return [];
+  const headers = parsed[hIdx].map(h => normKeyB(h));
+  return buildRowsB(parsed, hIdx + 1, headers);
+}
 
-  // Sub-header ada di baris berikutnya (PM, PO, SJ, DEV, dll)
-  const subIdx = grpIdx + 1;
+function parseWithDualHeader(parsed, grpIdx, subIdx) {
   const grpRow = parsed[grpIdx] || [];
   const subRow = parsed[subIdx] || [];
 
-  // Check apakah subRow benar-benar sub-header (mengandung PM, PO, SJ)
-  const subJoined = subRow.join(' ').toLowerCase();
-  const hasSubHeader = subJoined.includes(' pm') || subJoined.includes('sj') || subJoined.includes(' po');
+  // Gabungkan dua baris header: sub-header lebih spesifik, prioritaskan
+  // Untuk cell yang kosong di sub-header, propagate dari grup
+  let lastGrp = '';
+  const headers = grpRow.map((h, idx) => {
+    const g = (h || '').trim();
+    if (g) lastGrp = g;
+    const sub = (subRow[idx] || '').trim();
+    // Sub-header spesifik (ID_PM, ID_PO, PM, PO, SJ, DEV) → pakai sub
+    // Kolom tanpa sub-header → pakai grup
+    return normKeyB(sub || lastGrp);
+  });
 
-  let headers;
-  let dataStart;
-  if (hasSubHeader) {
-    let lastGrp = '';
-    headers = grpRow.map((h, idx) => {
-      const g = h.trim();
-      if (g) lastGrp = g;
-      const sub = subRow[idx]?.trim() || '';
-      return normKeyB(sub || lastGrp);
-    });
-    dataStart = subIdx + 1;
-  } else {
-    headers = grpRow.map(h => normKeyB(h));
-    dataStart = grpIdx + 1;
-  }
+  // Data mulai setelah sub-header, skip baris "< FILTER"
+  return buildRowsB(parsed, subIdx + 1, headers);
+}
 
+function buildRowsB(parsed, startIdx, headers) {
   const rows = [];
   let no = 1;
-  for (let i = dataStart; i < parsed.length; i++) {
+
+  for (let i = startIdx; i < parsed.length; i++) {
     const vals = parsed[i];
-    const nonEmpty = vals.filter(v => v.trim());
+    const nonEmpty = vals.filter(v => v.trim() !== '');
     if (nonEmpty.length < 3) continue;
-    // Skip divider: cell pertama huruf tunggal
+
+    // Skip baris filter/divider
+    const joined = vals.join('').toLowerCase();
+    if (joined.includes('< filter') || joined.includes('<filter')) continue;
+    if (joined.trim() === '') continue;
+
+    // Skip baris divider: cell pertama non-kosong adalah huruf tunggal
     const firstNE = nonEmpty[0]?.trim() || '';
-    if (/^[A-Z]$/.test(firstNE) && nonEmpty.length <= 4) continue;
+    if (/^[A-Za-z]$/.test(firstNE) && nonEmpty.length <= 4) continue;
 
     const obj = { no: no++ };
     headers.forEach((key, idx) => {
       if (key) obj[key] = vals[idx]?.trim() || '';
     });
 
-    obj.nama_material = obj.nama_material || obj.item_material || obj.material || '';
+    // Normalisasi field penting
+    obj.nama_material = obj.nama_material || obj.item_material || '';
     obj.supplier      = obj.supplier || obj.nama_supplier || '';
-    obj._raw_status   = obj.status_material || obj.status || '';
+    obj._raw_status   = obj.status_material || '';
 
     if (!obj.nama_material) continue;
     rows.push(obj);
@@ -608,26 +632,44 @@ function parseFormatB(text) {
 }
 
 function normKeyB(raw) {
-  const h = (raw||'').trim().toLowerCase().replace(/[\r\n]+/g,' ').replace(/\s+/g,' ');
+  const h = (raw||'').trim().toLowerCase()
+    .replace(/[\r\n]+/g,' ')
+    .replace(/\s+/g,' ')
+    .replace(/[()]/g, '');  // hapus kurung: "Permintaan Material ( PM )" → "permintaan material  pm "
   if (!h) return null;
+
+  // Nama material
   if (/nama.material|item.material/.test(h)) return 'nama_material';
+  // Supplier
   if (/^supplier$|nama.supplier/.test(h)) return 'supplier';
-  if (/^id.?pm$|permintaan.*id/.test(h)) return 'id_pm';
-  if (/tanggal.*pm|tgl.*pm/.test(h)) return 'tgl_pm';
-  if (/^id.?po$|purchasing.*id/.test(h)) return 'id_po';
-  if (/tanggal.*po|tgl.*po/.test(h)) return 'tgl_po';
+  // ID — cek yang lebih spesifik dulu
+  if (/^id.?pm$|^id_pm$/.test(h)) return 'id_pm';
+  if (/^id.?po$|^id_po$/.test(h)) return 'id_po';
+  // Tanggal
+  if (/tanggal|^tgl$/.test(h)) return 'tgl_pm'; // akan di-override oleh konteks kolom
+  // Durasi
   if (/durasi/.test(h)) return 'durasi';
-  if (/^ *pm *$/.test(h) || h === 'pm') return 'vol_pm';
-  if (/^ *po *$/.test(h) || h === 'po') return 'vol_po';
-  if (/^ *sj *$/.test(h) || h === 'sj') return 'vol_sj';
-  if (/dev.*pm|pm.*po.*dev/.test(h)) return 'dev_pm_po';
-  if (/dev.*po|po.*sj.*dev/.test(h)) return 'dev_po_sj';
-  if (/status.*pm|pm.*po.*status/.test(h)) return 'status_pm_po';
-  if (/status.*po|po.*sj.*status/.test(h)) return 'status_po_sj';
-  if (/status.*mat|satuan.*mat/.test(h)) return 'status_material';
-  if (/^status$/.test(h)) return 'status_material';
+  // Volume sub-kolom — harus exact match karena "pm" muncul banyak
+  if (/^ *pm *$/.test(h)) return 'vol_pm';
+  if (/^ *po *$/.test(h)) return 'vol_po';
+  if (/^ *sj *$/.test(h)) return 'vol_sj';
+  // Deviasi
+  if (/dev.*pm.*po|dev\. *pm.*po/.test(h)) return 'dev_pm_po';
+  if (/dev.*po.*sj|dev\. *po.*sj/.test(h)) return 'dev_po_sj';
+  // Status — "Setatus" adalah typo di sheet ini, cover keduanya
+  if (/setatus.*material|status.*material/.test(h)) return 'status_material';
+  if (/^pm.*po$|pm\s*-\s*po/.test(h)) return 'status_pm_po';  // kolom "PM - PO" = status PM-PO
+  if (/^po.*sj$|po\s*-\s*sj/.test(h)) return 'status_po_sj';  // kolom "PO - SJ" = status PO-SJ
+  if (/^setatus$|^status$/.test(h)) return 'status_pm_po';
+  // Extra
+  if (/deskripsi|desk/.test(h)) return 'deskripsi';
+  if (/katagori|kategori/.test(h)) return 'kategori';
   if (/satuan/.test(h)) return 'satuan';
   if (/keterangan/.test(h)) return 'keterangan';
+  // Volume grup (sebelum sub-header mengisi)
+  if (/^volume$/.test(h)) return 'vol_pm';
+
+  // Fallback
   return h.replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'') || null;
 }
 
