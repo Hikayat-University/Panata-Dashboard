@@ -750,58 +750,62 @@ function parseCSV(text, sheetType, projectFormat) {
     return parseFormatBRakap(parsed);
   }
 
-  // FORMAT UMUM (A + supplier + report semua format):
-  // Scan baris 1-25, cari header real
+  // FORMAT UMUM: cari header dengan deteksi konten kolom kunci
   let headerIdx = -1;
-  for (let i = 0; i < Math.min(parsed.length, 25); i++) {
-    const cells = parsed[i];
-    const nonEmpty = cells.filter(c => c.trim() !== '');
-    if (nonEmpty.length < 3) continue;
-    const textCells = nonEmpty.filter(c => isNaN(c.trim()) && c.trim() !== '');
-    if (textCells.length / nonEmpty.length < 0.6) continue;
-
-    // Skip baris divider (cell pertama huruf tunggal)
-    const firstNonEmpty = nonEmpty[0] || '';
-    if (/^[A-Za-z]$/.test(firstNonEmpty.trim()) && nonEmpty.length <= 3) continue;
-
-    // Skip baris grup (cth: "VOLUME" yang span beberapa kolom) —
-    // biasanya hanya 1-2 kata teks dengan banyak cell kosong
-    if (nonEmpty.length <= 3 && textCells.length === nonEmpty.length) {
-      // Kandidat baris grup — cek apakah baris berikutnya lebih banyak kolom
-      const nextRow = parsed[i + 1] || [];
-      const nextNonEmpty = nextRow.filter(c => c.trim());
-      if (nextNonEmpty.length > nonEmpty.length * 2) continue; // ini baris grup, skip
+  for (let i = 0; i < Math.min(parsed.length, 30); i++) {
+    const joined = parsed[i].join(' ').toLowerCase();
+    // Cari baris yang mengandung kombinasi kolom kunci
+    if (
+      (joined.includes('item material') && joined.includes('indikator')) ||
+      (joined.includes('item material') && joined.includes('satuan')) ||
+      (joined.includes('item material') && joined.includes('onsite')) ||
+      (joined.includes('nama material') && joined.includes('status')) ||
+      (joined.includes('supplier') && (joined.includes('cash') || joined.includes('id_po') || joined.includes('id po')))
+    ) {
+      headerIdx = i;
+      break;
     }
+  }
 
-    headerIdx = i;
-    break;
+  // Fallback jika tidak ketemu dengan konten kunci
+  if (headerIdx === -1) {
+    for (let i = 0; i < Math.min(parsed.length, 30); i++) {
+      const nonEmpty = parsed[i].filter(c => c.trim());
+      if (nonEmpty.length < 4) continue;
+      const textCells = nonEmpty.filter(c => isNaN(c.trim()));
+      if (textCells.length / nonEmpty.length < 0.6) continue;
+      // Skip divider: ada cell huruf tunggal
+      if (nonEmpty.some(c => /^[A-Z]$/.test(c.trim())) && nonEmpty.length <= 4) continue;
+      headerIdx = i;
+      break;
+    }
   }
 
   if (headerIdx === -1) return [];
 
-  // Cek apakah ada baris header grup sebelumnya (seperti "VOLUME" span beberapa kolom)
-  // Kalau ya, gabungkan prefix grup ke sub-header
-  let headers = [];
-  const possibleGroupRow = headerIdx > 0 ? parsed[headerIdx - 1] : null;
-  if (possibleGroupRow) {
-    const groupNonEmpty = possibleGroupRow.filter(c => c.trim() && isNaN(c.trim()));
-    // Kalau baris sebelumnya punya 1-4 teks non-angka → kemungkinan baris grup
-    if (groupNonEmpty.length >= 1 && groupNonEmpty.length <= 5) {
-      // Propagate grup ke kolom kosong di sebelah kanannya
-      let lastGroup = '';
-      headers = parsed[headerIdx].map((h, idx) => {
-        const grp = possibleGroupRow[idx]?.trim() || '';
-        if (grp) lastGroup = grp;
-        return normalizeKey((lastGroup !== h.trim() ? lastGroup + ' ' + h : h).trim(), sheetType);
-      });
-    }
-  }
+  // Cek sub-header di baris berikutnya (PM > QC, ONSITE, DEVIASI, dll)
+  const subRow = parsed[headerIdx + 1] || [];
+  const subJoined = subRow.join(' ').toLowerCase();
+  const hasSubHeader =
+    (subJoined.includes('onsite') || subJoined.includes('deviasi') || subJoined.includes('qc')) &&
+    subRow.filter(c => c.trim()).length >= 3;
 
-  if (!headers.length) {
+  let headers;
+  let dataStart;
+  if (hasSubHeader) {
+    // Merge header utama + sub-header: kolom kosong di header diisi dari sub-header
+    headers = parsed[headerIdx].map((h, idx) => {
+      const main = h.trim();
+      const sub  = subRow[idx]?.trim() || '';
+      return normalizeKey(main || sub, sheetType);
+    });
+    dataStart = headerIdx + 2;
+  } else {
     headers = parsed[headerIdx].map(h => normalizeKey(h, sheetType));
+    dataStart = headerIdx + 1;
   }
 
-  return buildRows(parsed, headerIdx + 1, headers, sheetType);
+  return buildRows(parsed, dataStart, headers, sheetType);
 }
 
 // Parser khusus Format B RAKAP — header 2 baris + kolom status material terakhir
