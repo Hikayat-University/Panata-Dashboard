@@ -485,15 +485,15 @@ async function fetchAllData() {
     // RAKAP_PM_PO_SJ
     if (p.urlRakap) {
       try {
-        const rows = parseCSV(await (await fetch(p.urlRakap)).text(), 'rakap');
-        rows.forEach(r => { r.project_id = p.id; r.project_name = p.name; });
+        const rows = parseCSV(await (await fetch(p.urlRakap)).text(), 'rakap', p.format||'A');
+        rows.forEach(r => { r.project_id = p.id; r.project_name = p.name; r.project_format = p.format||'A'; });
         data.rakap.push(...rows); ok++;
       } catch(e) { console.warn('RAKAP fail', p.name, e); }
     }
     // REKAP_SUPPLIER
     if (p.urlSupplier) {
       try {
-        const rows = parseCSV(await (await fetch(p.urlSupplier)).text(), 'supplier');
+        const rows = parseCSV(await (await fetch(p.urlSupplier)).text(), 'supplier', p.format||'A');
         rows.forEach(r => { r.project_id = p.id; r.project_name = p.name; });
         data.supplier.push(...rows);
       } catch(e) { console.warn('SUPPLIER fail', p.name, e); }
@@ -501,7 +501,7 @@ async function fetchAllData() {
     // REPORT_MATERIAL_PROYEK
     if (p.urlReport) {
       try {
-        const rows = parseCSV(await (await fetch(p.urlReport)).text(), 'report');
+        const rows = parseCSV(await (await fetch(p.urlReport)).text(), 'report', p.format||'A');
         rows.forEach(r => { r.project_id = p.id; r.project_name = p.name; });
         data.report.push(...rows);
       } catch(e) { console.warn('REPORT fail', p.name, e); }
@@ -518,122 +518,208 @@ async function fetchAllData() {
   renderAll();
 }
 
-// ── CSV PARSER (SMART — tahan messy header) ──────────
-/*
-  Strategi:
-  1. Split semua baris, parse tiap baris jadi array cell
-  2. Scan dari atas: skip baris yang sebagian besar kosong atau
-     baris yang cell pertamanya adalah angka murni (baris data)
-  3. Baris header = baris pertama yang punya >= 4 cell berisi teks
-     DAN bukan semua angka
-  4. Setelah header ketemu, baca baris data di bawahnya
-  5. Normalize nama kolom: map berbagai variasi ke key standar
-*/
-function parseCSV(text, sheetType) {
+// ── CSV PARSER (SMART — tahan messy header, 2 format) ─
+function parseCSV(text, sheetType, projectFormat) {
   const rawLines = text.split('\n');
   const parsed = rawLines.map(l => csvLine(l));
 
-  // Cari baris header: min 4 cell non-kosong, mayoritas teks bukan angka
+  // FORMAT B — RAKAP: header ada di 2 baris (baris grup + baris kolom)
+  // Deteksi: ada cell "Permintaan Material" atau "Purchasing Order"
+  if (projectFormat === 'B' && sheetType === 'rakap') {
+    return parseFormatBRakap(parsed);
+  }
+
+  // FORMAT UMUM (A + supplier + report semua format):
+  // Scan baris 1-20, cari header real (baris pertama dgn >=3 cell teks)
   let headerIdx = -1;
-  for (let i = 0; i < Math.min(parsed.length, 20); i++) {
+  for (let i = 0; i < Math.min(parsed.length, 25); i++) {
     const cells = parsed[i];
     const nonEmpty = cells.filter(c => c.trim() !== '');
     if (nonEmpty.length < 3) continue;
     const textCells = nonEmpty.filter(c => isNaN(c.trim()) && c.trim() !== '');
-    // Header jika >60% cell adalah teks
     if (textCells.length / nonEmpty.length >= 0.6) {
+      // Pastikan bukan baris sub-kategori satu cell (e.g. "A  DATA REKAP MATERIAL")
+      if (nonEmpty.length === 1) continue;
       headerIdx = i;
       break;
     }
   }
 
-  if (headerIdx === -1) return []; // Tidak ketemu header
+  if (headerIdx === -1) return [];
 
-  const rawHeaders = parsed[headerIdx];
+  // Cek apakah ada baris header grup sebelumnya (seperti "VOLUME" span beberapa kolom)
+  // Kalau ya, gabungkan prefix grup ke sub-header
+  let headers = [];
+  const possibleGroupRow = headerIdx > 0 ? parsed[headerIdx - 1] : null;
+  if (possibleGroupRow) {
+    const groupNonEmpty = possibleGroupRow.filter(c => c.trim() && isNaN(c.trim()));
+    // Kalau baris sebelumnya punya 1-4 teks non-angka → kemungkinan baris grup
+    if (groupNonEmpty.length >= 1 && groupNonEmpty.length <= 5) {
+      // Propagate grup ke kolom kosong di sebelah kanannya
+      let lastGroup = '';
+      headers = parsed[headerIdx].map((h, idx) => {
+        const grp = possibleGroupRow[idx]?.trim() || '';
+        if (grp) lastGroup = grp;
+        return normalizeKey((lastGroup !== h.trim() ? lastGroup + ' ' + h : h).trim(), sheetType);
+      });
+    }
+  }
 
-  // Normalize header ke key standar
-  const headers = rawHeaders.map(h => normalizeKey(h, sheetType));
+  if (!headers.length) {
+    headers = parsed[headerIdx].map(h => normalizeKey(h, sheetType));
+  }
 
+  return buildRows(parsed, headerIdx + 1, headers, sheetType);
+}
+
+// Parser khusus Format B RAKAP — header 2 baris + kolom status material terakhir
+function parseFormatBRakap(parsed) {
+  // Cari baris yang mengandung "Permintaan Material" atau "No" sebagai header grup
+  let grpIdx = -1;
+  for (let i = 0; i < Math.min(parsed.length, 25); i++) {
+    const row = parsed[i];
+    const joined = row.join(' ').toLowerCase();
+    if (joined.includes('permintaan material') || joined.includes('purchasing order')) {
+      grpIdx = i; break;
+    }
+  }
+
+  // Kalau tidak ketemu, fallback ke parser umum
+  if (grpIdx === -1) {
+    let headerIdx = -1;
+    for (let i = 0; i < Math.min(parsed.length, 25); i++) {
+      const nonEmpty = parsed[i].filter(c => c.trim());
+      if (nonEmpty.length >= 3 && nonEmpty.filter(c => isNaN(c.trim())).length / nonEmpty.length >= 0.6) {
+        headerIdx = i; break;
+      }
+    }
+    if (headerIdx === -1) return [];
+    const headers = parsed[headerIdx].map(h => normalizeKey(h, 'rakap_b'));
+    return buildRows(parsed, headerIdx + 1, headers, 'rakap_b');
+  }
+
+  const subHeaderIdx = grpIdx + 1;
+  const grpRow = parsed[grpIdx] || [];
+  const subRow = parsed[subHeaderIdx] || [];
+
+  // Propagate grup: "Permintaan Material (PM)" → prefix untuk sub-kolom kosong setelahnya
+  let lastGrp = '';
+  const headers = subRow.map((h, idx) => {
+    const g = grpRow[idx]?.trim() || '';
+    if (g) lastGrp = g;
+    const combined = h.trim() ? h.trim() : lastGrp;
+    return normalizeKey(combined, 'rakap_b');
+  });
+
+  return buildRows(parsed, subHeaderIdx + 1, headers, 'rakap_b');
+}
+
+// Build data rows dari parsed lines mulai dari startIdx
+function buildRows(parsed, startIdx, headers, sheetType) {
   const rows = [];
-  let dataRowNo = 1;
-
-  for (let i = headerIdx + 1; i < parsed.length; i++) {
+  let no = 1;
+  for (let i = startIdx; i < parsed.length; i++) {
     const vals = parsed[i];
     const nonEmpty = vals.filter(v => v.trim() !== '');
-    if (nonEmpty.length < 2) continue; // skip baris kosong / divider
+    if (nonEmpty.length < 2) continue;
 
-    const obj = { no: dataRowNo++ };
+    const obj = { no: no++ };
     headers.forEach((key, idx) => {
       if (key) obj[key] = vals[idx]?.trim() || '';
     });
 
-    // Pastikan field standar selalu ada
+    // Normalisasi field standar
     obj.nama_material = obj.nama_material || obj.item_material || obj.material || obj.nama || '';
     obj.supplier      = obj.supplier || obj.nama_supplier || '';
-    obj.status        = normalizeStatus(obj.status || obj.indikator_stok || '');
     obj.cash_out      = obj.cash_out || obj.cash || obj.cashout || obj.nilai || '';
 
-    // Skip baris kategori / sub-header (misalnya baris "A DATA REKAP MATERIAL")
-    if (obj.nama_material === '' && obj.supplier === '' && obj.status === '') continue;
+    // Status: Format B punya status_material, Format A punya status
+    const rawStatus = obj.status_material || obj.status || obj.indikator_stok || '';
+    obj.status = normalizeStatus(rawStatus);
+    obj._raw_status = rawStatus; // simpan raw untuk display
+
+    // Skip baris kategori / divider
+    if (!obj.nama_material && !obj.supplier && !rawStatus) continue;
+    // Skip baris total/rekapitulasi supplier
+    if ((obj.supplier||'').toLowerCase().includes('kapitulasi')) continue;
 
     rows.push(obj);
   }
   return rows;
 }
 
-// Map berbagai nama kolom dari sheet ke key standar
+// Map nama kolom ke key standar — cover Format A, B, dan semua variasi
 function normalizeKey(raw, sheetType) {
   const h = raw.trim().toLowerCase()
-    .replace(/[\r\n]+/g,' ')
-    .replace(/\s+/g,' ');
+    .replace(/[\r\n]+/g,' ').replace(/\s+/g,' ');
 
-  // MATERIAL name
-  if (/item.material|nama.material|^material$|^nama$/.test(h)) return 'nama_material';
-  // Supplier
-  if (/^supplier|nama.supplier/.test(h)) return 'supplier';
-  // Tanggal
-  if (/tgl.perm|tanggal.perm/.test(h)) return 'tgl_permintaan';
-  // ID PM
-  if (/^id.?pm$|^id_pm$/.test(h)) return 'id_pm';
-  // ID PO
-  if (/^id.?po$|^id_po$/.test(h)) return 'id_po';
+  // Universal
+  if (/item.material|nama.material|^material$|^nama material$/.test(h)) return 'nama_material';
+  if (/^supplier$|nama.supplier/.test(h)) return 'supplier';
+  if (/keterangan|^ket\.?$/.test(h)) return 'keterangan';
+  if (/satuan/.test(h)) return 'satuan';
+  if (/cash.out|cashout/.test(h)) return 'cash_out';
 
-  // RAKAP columns
-  if (/total.pm|^pm$/.test(h)) return 'total_pm';
-  if (/total.po|^po$/.test(h)) return 'total_po';
-  if (/total.sj|^sj$/.test(h)) return 'total_sj';
-  if (/sisa.belum|sisa/.test(h)) return 'sisa_belum_dikirim';
+  // Format A — RAKAP
+  if (/^total.?pm$/.test(h)) return 'total_pm';
+  if (/^total.?po$/.test(h)) return 'total_po';
+  if (/^total.?sj$/.test(h)) return 'total_sj';
+  if (/sisa.belum|^sisa$/.test(h)) return 'sisa_belum_dikirim';
   if (/^status$/.test(h)) return 'status';
+
+  // Format B — RAKAP: Permintaan Material (PM) group
+  if (/^id.?pm$|permintaan.*id.?pm|^id_pm$/.test(h)) return 'id_pm';
+  if (/permintaan.*tanggal|tanggal.*pm/.test(h)) return 'tgl_pm';
+  // Format B — Purchasing Order (PO) group
+  if (/^id.?po$|purchasing.*id.?po|^id_po$/.test(h)) return 'id_po';
+  if (/purchasing.*tanggal|tanggal.*po/.test(h)) return 'tgl_po';
+  // Format B — Durasi
+  if (/durasi/.test(h)) return 'durasi_pm_po';
+  // Format B — Volume sub-kolom
+  if (/^volume pm$|^ *pm *$/.test(h) || h === 'pm') return 'vol_pm';
+  if (/^volume po$|^ *po *$/.test(h) || h === 'po') return 'vol_po';
+  if (/^volume sj$|^ *sj *$/.test(h) || h === 'sj') return 'vol_sj';
+  if (/dev.*pm.*po|dev.pm.po/.test(h)) return 'dev_pm_po';
+  if (/dev.*po.*sj|dev.po.sj/.test(h)) return 'dev_po_sj';
+  // Format B — Status kolom (ada 3: PM-PO, PO-SJ, Material)
+  if (/status.*pm.*po|pm.*po.*status/.test(h)) return 'status_pm_po';
+  if (/status.*po.*sj|po.*sj.*status/.test(h)) return 'status_po_sj';
+  if (/status.*material|status.mat/.test(h)) return 'status_material';
+  // Format B juga: kolom "Status" terakhir = status material
+  if (/^status$/.test(h) && sheetType === 'rakap_b') return 'status_material';
 
   // REPORT columns
   if (/pm.*qc|pm\+qc/.test(h)) return 'pm_qc';
   if (/^onsite$/.test(h)) return 'onsite';
-  if (/deviasi/.test(h)) return 'deviasi';
+  if (/^deviasi$/.test(h)) return 'deviasi';
   if (/bon.mat/.test(h)) return 'bon_material';
   if (/stok.mat/.test(h)) return 'stok_material';
   if (/indikator.stok/.test(h)) return 'indikator_stok';
-  if (/satuan/.test(h)) return 'satuan';
-  if (/keterangan|ket\.?$/.test(h)) return 'keterangan';
 
-  // SUPPLIER columns
-  if (/cash.out|cashout|nilai/.test(h)) return 'cash_out';
+  // SUPPLIER
+  if (/^id.?po$|^id_po$/.test(h)) return 'id_po';
 
-  // Fallback: buat key dari raw (hilangkan karakter aneh)
-  const fallback = h.replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
-  return fallback || null;
+  // Fallback key
+  return h.replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'') || null;
 }
 
-// Normalize status dari berbagai format
+// Normalize status dari berbagai format ke OPEN/CLOSED/ERROR
 function normalizeStatus(raw) {
-  const s = raw.trim().toUpperCase();
-  if (s.includes('CLOSED') || s.includes('✓') || s === 'CLOSED (✓)') return 'CLOSED';
+  const s = (raw||'').trim().toUpperCase();
+  if (!s) return '';
+  if (s.includes('CLOSED') || s.includes('✓')) return 'CLOSED';
   if (s === 'OPEN') return 'OPEN';
   if (s.includes('ERROR') || s.includes('ERR')) return 'ERROR';
-  // Dari REPORT_MATERIAL: "Stock Aman" → CLOSED, "Stock Tipis" → OPEN, "Stock Habis/Error(X)" → ERROR
-  if (/stock.aman|aman/.test(s)) return 'CLOSED';
-  if (/stock.tipis|tipis/.test(s)) return 'OPEN';
-  if (/stock.habis|habis|error/.test(s)) return 'ERROR';
-  return s || '';
+  // Format A REPORT: indikator stok
+  if (/STOCK.AMAN|^AMAN$/.test(s)) return 'CLOSED';
+  if (/STOCK.TIPIS|^TIPIS$/.test(s)) return 'OPEN';
+  if (/STOCK.HABIS|^HABIS$/.test(s)) return 'ERROR';
+  // Format B: status material teks lengkap
+  if (/MATERIAL.KIRIM.PROYEK|KIRIM.PROYEK|SI CLOSED|SJ CLOSED/.test(s)) return 'CLOSED';
+  if (/MATERIAL.DI.WORKSHOP|DI.WORKSHOP|PO CLOSED/.test(s)) return 'OPEN';
+  if (/KURANG|LEBIH|DI.KIRIM.LEBIH/.test(s)) return 'OPEN';
+  if (/BELUM|OPEN/.test(s)) return 'OPEN';
+  return s;
 }
 
 function csvLine(line) {
@@ -740,31 +826,104 @@ function applyFilters() {
   if (search) rows = rows.filter(r =>
     (r.nama_material||'').toLowerCase().includes(search)||
     (r.supplier||'').toLowerCase().includes(search));
+
+  // Deteksi apakah ada baris Format B di hasil filter
+  const hasFormatB = rows.some(r => r.project_format === 'B');
+  const hasFormatA = rows.some(r => r.project_format !== 'B');
+  const mixed = hasFormatA && hasFormatB;
+
+  // Set header tabel sesuai format dominan
+  const thead = document.querySelector('#materialBody').closest('table').querySelector('thead tr');
+  if (hasFormatB && !hasFormatA) {
+    // Semua Format B
+    thead.innerHTML = `<th>No</th><th>Material</th><th>Supplier</th>
+      <th>ID PM</th><th>ID PO</th><th>Durasi</th>
+      <th class="nr">PM</th><th class="nr">PO</th><th class="nr">SJ</th>
+      <th class="nr">Dev PM-PO</th><th class="nr">Dev PO-SJ</th>
+      <th>Status PM-PO</th><th>Status PO-SJ</th><th>Status Material</th>`;
+  } else {
+    // Format A atau campuran — tampilkan kolom A + kolom format sebagai info
+    thead.innerHTML = `<th>No</th><th>Material</th><th>Supplier</th>
+      <th class="nr">PM</th><th class="nr">PO</th><th class="nr">SJ</th>
+      <th class="nr">Sisa</th><th>Status</th>`;
+  }
+
   const tb = document.getElementById('materialBody');
   tb.innerHTML = '';
   if (!rows.length) {
-    tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:28px">Tidak ada data</td></tr>';
+    tb.innerHTML=`<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:28px">Tidak ada data</td></tr>`;
     return;
   }
+
   rows.forEach((row, i) => {
     const st = getStatus(row);
     const sc = st.includes('CLOSED')?'closed':st==='OPEN'?'open':st==='ERROR'?'error':'open';
-    const sl = st.includes('CLOSED')?'CLOSED ✓':st||'—';
-    const sisa = parseInt(row.sisa_belum_dikirim)||0;
-    const tr = document.createElement('tr');
     const safeName = (row.nama_material||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
-    tr.innerHTML = `
-      <td class="mu">${i+1}</td>
-      <td><strong>${row.nama_material||'—'}</strong>
-        ${!projId&&row.project_name?`<div style="font-size:9px;color:var(--text-dim);margin-top:1px">${row.project_name}</div>`:''}
-      </td>
-      <td class="mu" style="font-size:10px">${row.supplier||'—'}</td>
-      <td class="nr">${row.total_pm||'—'}</td>
-      <td class="nr">${row.total_po||'—'}</td>
-      <td class="nr">${row.total_sj||'—'}</td>
-      <td class="nr" style="color:${sisa>0?'var(--amber)':'var(--text-muted)'}">${row.sisa_belum_dikirim||'—'}</td>
-      <td><div class="badge ${sc}" onclick="openStatusModal(${row.project_id},'${row.no}','${safeName}','${st}')">
-        <div class="bdot"></div>${sl}</div></td>`;
+    const tr = document.createElement('tr');
+
+    if (row.project_format === 'B') {
+      // Render Format B
+      const stPmPo = row.status_pm_po || '';
+      const stPoSj = row.status_po_sj || '';
+      const stMat  = row._raw_status || row.status_material || '';
+      const scMat  = sc;
+      const devPmPo = parseFloat(row.dev_pm_po)||0;
+      const devPoSj = parseFloat(row.dev_po_sj)||0;
+
+      if (hasFormatB && !hasFormatA) {
+        // Full Format B columns
+        tr.innerHTML = `
+          <td class="mu">${i+1}</td>
+          <td><strong>${row.nama_material||'—'}</strong>
+            ${!projId&&row.project_name?`<div style="font-size:9px;color:var(--text-dim);margin-top:1px">${row.project_name}</div>`:''}
+          </td>
+          <td class="mu" style="font-size:10px">${row.supplier||'—'}</td>
+          <td class="mu" style="font-size:10px"><span class="tag-kecil">${row.id_pm||'—'}</span></td>
+          <td class="mu" style="font-size:10px"><span class="tag-kecil">${row.id_po||'—'}</span></td>
+          <td class="mu" style="font-size:10px;color:${row.durasi_pm_po&&parseInt(row.durasi_pm_po)>7?'var(--red)':'var(--text-muted)'}">${row.durasi_pm_po||'—'}</td>
+          <td class="nr">${row.vol_pm||row.total_pm||'—'}</td>
+          <td class="nr">${row.vol_po||row.total_po||'—'}</td>
+          <td class="nr">${row.vol_sj||row.total_sj||'—'}</td>
+          <td class="nr" style="color:${devPmPo<0?'var(--red)':devPmPo>0?'var(--amber)':'var(--text-muted)'}">${row.dev_pm_po||'—'}</td>
+          <td class="nr" style="color:${devPoSj<0?'var(--red)':devPoSj>0?'var(--amber)':'var(--text-muted)'}">${row.dev_po_sj||'—'}</td>
+          <td style="font-size:9px;color:var(--text-muted)">${stPmPo||'—'}</td>
+          <td style="font-size:9px;color:var(--text-muted)">${stPoSj||'—'}</td>
+          <td><div class="badge ${scMat}" onclick="openStatusModal(${row.project_id},'${row.no}','${safeName}','${st}')">
+            <div class="bdot"></div>${stMat||st||'—'}</div></td>`;
+      } else {
+        // Mixed: tampilkan Format A columns, tapi badge tunjukkan status material
+        const sisa = parseInt(row.sisa_belum_dikirim)||0;
+        tr.innerHTML = `
+          <td class="mu">${i+1}</td>
+          <td><strong>${row.nama_material||'—'}</strong>
+            ${!projId&&row.project_name?`<div style="font-size:9px;color:var(--text-dim);margin-top:1px">${row.project_name}</div>`:''}
+            <div style="font-size:9px;color:var(--text-dim);margin-top:1px">Format B · ${row.id_pm||''} → ${row.id_po||''}</div>
+          </td>
+          <td class="mu" style="font-size:10px">${row.supplier||'—'}</td>
+          <td class="nr">${row.vol_pm||row.total_pm||'—'}</td>
+          <td class="nr">${row.vol_po||row.total_po||'—'}</td>
+          <td class="nr">${row.vol_sj||row.total_sj||'—'}</td>
+          <td class="nr" style="color:var(--text-muted)">—</td>
+          <td><div class="badge ${scMat}" onclick="openStatusModal(${row.project_id},'${row.no}','${safeName}','${st}')">
+            <div class="bdot"></div>${stMat||st||'—'}</div></td>`;
+      }
+    } else {
+      // Render Format A
+      const sisa = parseInt(row.sisa_belum_dikirim)||0;
+      const sl = st.includes('CLOSED')?'CLOSED ✓':st||'—';
+      tr.innerHTML = `
+        <td class="mu">${i+1}</td>
+        <td><strong>${row.nama_material||'—'}</strong>
+          ${!projId&&row.project_name?`<div style="font-size:9px;color:var(--text-dim);margin-top:1px">${row.project_name}</div>`:''}
+        </td>
+        <td class="mu" style="font-size:10px">${row.supplier||'—'}</td>
+        <td class="nr">${row.total_pm||'—'}</td>
+        <td class="nr">${row.total_po||'—'}</td>
+        <td class="nr">${row.total_sj||'—'}</td>
+        <td class="nr" style="color:${sisa>0?'var(--amber)':'var(--text-muted)'}">${row.sisa_belum_dikirim||'—'}</td>
+        <td><div class="badge ${sc}" onclick="openStatusModal(${row.project_id},'${row.no}','${safeName}','${st}')">
+          <div class="bdot"></div>${sl}</div></td>`;
+    }
     tb.appendChild(tr);
   });
 }
@@ -887,13 +1046,14 @@ function renderSetupList() {
   list.innerHTML = '';
   draftProjects.forEach((p, i) => {
     const hasUrl = p.urlRakap || p.urlSupplier;
+    const fmt = p.format || 'A';
     const row = document.createElement('div');
     row.className = 'psetup-row';
     row.innerHTML = `
       <div class="psetup-hd" onclick="toggleRow(${i})">
         <div>
           <div class="psetup-name">${p.name||'(Proyek baru)'}</div>
-          <div class="psetup-meta">${p.location||'Belum ada lokasi'}</div>
+          <div class="psetup-meta">${p.location||'Belum ada lokasi'} · Format ${fmt}</div>
         </div>
         <div style="display:flex;align-items:center;gap:7px;">
           <span class="psetup-stat ${hasUrl?'ok':'empty'}">${hasUrl?'✓ Terhubung':'Belum ada URL'}</span>
@@ -901,6 +1061,7 @@ function renderSetupList() {
         </div>
       </div>
       <div class="psetup-body" id="pbody-${i}">
+
         <label class="mlabel">Nama Proyek *</label>
         <input class="minput" placeholder="Sekolah Rakyat Kab. Barru" value="${p.name||''}"
           oninput="draftProjects[${i}].name=this.value;refreshRow(${i})">
@@ -908,6 +1069,24 @@ function renderSetupList() {
         <label class="mlabel">Lokasi / Label</label>
         <input class="minput" placeholder="Kab. Barru, Sulsel" value="${p.location||''}"
           oninput="draftProjects[${i}].location=this.value;refreshRow(${i})">
+
+        <label class="mlabel">Format Sheet</label>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <label style="display:flex;align-items:flex-start;gap:8px;flex:1;cursor:pointer;padding:10px 12px;border:1px solid ${fmt==='A'?'var(--teal)':'var(--border)'};border-radius:8px;background:${fmt==='A'?'var(--teal-dim)':'transparent'};transition:all .15s;">
+            <input type="radio" name="fmt-${i}" value="A" ${fmt==='A'?'checked':''} onchange="draftProjects[${i}].format='A';renderSetupList();document.getElementById('pbody-${i}').classList.add('open')" style="margin-top:2px;accent-color:var(--teal)">
+            <div>
+              <div style="font-size:11px;font-weight:600;color:var(--text)">Format A</div>
+              <div style="font-size:9px;color:var(--text-muted);margin-top:2px;line-height:1.5">RAKAP: Nama Material, Supplier, Total PM/PO/SJ, Sisa, Status<br>3 proyek pertama (Barru, Sidrap, Wajo, dst)</div>
+            </div>
+          </label>
+          <label style="display:flex;align-items:flex-start;gap:8px;flex:1;cursor:pointer;padding:10px 12px;border:1px solid ${fmt==='B'?'var(--teal)':'var(--border)'};border-radius:8px;background:${fmt==='B'?'var(--teal-dim)':'transparent'};transition:all .15s;">
+            <input type="radio" name="fmt-${i}" value="B" ${fmt==='B'?'checked':''} onchange="draftProjects[${i}].format='B';renderSetupList();document.getElementById('pbody-${i}').classList.add('open')" style="margin-top:2px;accent-color:var(--teal)">
+            <div>
+              <div style="font-size:11px;font-weight:600;color:var(--text)">Format B</div>
+              <div style="font-size:9px;color:var(--text-muted);margin-top:2px;line-height:1.5">RAKAP: ID_PM, ID_PO, Durasi, Supplier, Volume PM/PO/SJ, Dev, Status PM-PO & PO-SJ<br>5 proyek terakhir (OKI, Ogan Ilir, Nagan Raya, dst)</div>
+            </div>
+          </label>
+        </div>
 
         <label class="mlabel">URL CSV — Sheet RAKAP_PM_PO_SJ</label>
         <input class="minput" type="url" placeholder="https://docs.google.com/…&output=csv" value="${p.urlRakap||''}"
@@ -945,7 +1124,7 @@ function refreshRow(i) {
 }
 
 function addProjectDraft() {
-  draftProjects.push({ id: Date.now(), name:'', location:'', urlRakap:'', urlSupplier:'', urlSheets:'' });
+  draftProjects.push({ id: Date.now(), name:'', location:'', format:'A', urlRakap:'', urlSupplier:'', urlReport:'', urlSheets:'' });
   renderSetupList();
   const idx = draftProjects.length - 1;
   document.getElementById('pbody-'+idx)?.classList.add('open');
