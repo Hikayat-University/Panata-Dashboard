@@ -3,1022 +3,328 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panata — Material Dashboard 2026</title>
+<title>Panata — Dashboard Proyek Saat Ini</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0A1628;
-    --surface: #111E33;
-    --surface2: #162240;
-    --border: #1E3050;
-    --teal: #00C2B3;
-    --teal-dim: rgba(0,194,179,0.12);
-    --amber: #F5A623;
-    --amber-dim: rgba(245,166,35,0.12);
-    --red: #FF4D6A;
-    --red-dim: rgba(255,77,106,0.12);
-    --green: #36D399;
-    --green-dim: rgba(54,211,153,0.12);
-    --text: #E8EFF8;
-    --text-muted: #6B84A3;
-    --text-dim: #3E5270;
+    --bg:#0A1628;--surface:#111E33;--surface2:#162240;--border:#1E3050;
+    --teal:#00C2B3;--teal-dim:rgba(0,194,179,0.12);
+    --amber:#F5A623;--amber-dim:rgba(245,166,35,0.12);
+    --red:#FF4D6A;--red-dim:rgba(255,77,106,0.12);
+    --green:#36D399;--green-dim:rgba(54,211,153,0.12);
+    --text:#E8EFF8;--text-muted:#6B84A3;--text-dim:#3E5270;
   }
-
-  * { margin:0; padding:0; box-sizing:border-box; }
-
-  body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
 
   /* TOPBAR */
-  .topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 28px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .brand-icon {
-    width: 34px;
-    height: 34px;
-    background: var(--teal);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--bg);
-    letter-spacing: -0.5px;
-  }
-
-  .brand-name {
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-  }
-
-  .brand-sub {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-top: 1px;
-  }
-
-  .topbar-right {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-
-  .sync-status {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-
-  .sync-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--green);
-    box-shadow: 0 0 6px var(--green);
-    animation: pulse-green 2s infinite;
-  }
-
-  @keyframes pulse-green {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-
-  .btn-sheets {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 7px 14px;
-    background: var(--teal-dim);
-    border: 1px solid var(--teal);
-    border-radius: 8px;
-    color: var(--teal);
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.2s;
-  }
-
-  .btn-sheets:hover { background: var(--teal); color: var(--bg); }
-
-  .date-badge {
-    font-size: 11px;
-    color: var(--text-muted);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    padding: 5px 10px;
-    border-radius: 6px;
-  }
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:13px 26px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .logo-mark{width:27px;height:27px;position:relative;flex-shrink:0;}
+  .logo-mark::before{content:'';position:absolute;left:0;top:0;width:8px;height:27px;background:var(--teal);border-radius:2px;}
+  .logo-mark::after{content:'';position:absolute;left:8px;top:0;width:19px;height:15px;background:var(--teal);border-radius:0 6px 6px 0;clip-path:polygon(0 0,100% 0,100% 55%,55% 100%,0 100%);}
+  .brand-name{font-size:14px;font-weight:600;}
+  .brand-sub{font-size:10px;color:var(--text-muted);margin-top:1px;}
+  .topbar-right{display:flex;align-items:center;gap:9px;}
+  .sync-status{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted);}
+  .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);animation:pgr 2s infinite;}
+  .sync-dot.dim{background:var(--text-dim);box-shadow:none;animation:none;}
+  .sync-dot.err{background:var(--red);box-shadow:0 0 5px var(--red);animation:none;}
+  @keyframes pgr{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .date-badge{font-size:10px;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);padding:4px 9px;border-radius:5px;}
+  .btn-top{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--text-muted);font-family:'Inter',sans-serif;font-size:11px;font-weight:500;cursor:pointer;text-decoration:none;transition:all .18s;}
+  .btn-top:hover{border-color:var(--teal);color:var(--teal);}
+  .btn-top.teal{border-color:var(--teal);color:var(--teal);background:var(--teal-dim);}
+  .btn-top.teal:hover{background:var(--teal);color:var(--bg);}
 
   /* LAYOUT */
-  .main {
-    display: flex;
-    flex: 1;
-  }
+  .main{display:flex;flex:1;}
 
   /* SIDEBAR */
-  .sidebar {
-    width: 230px;
-    min-width: 230px;
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    padding: 20px 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .sidebar-label {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 1.2px;
-    color: var(--text-dim);
-    padding: 0 18px;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-  }
-
-  .project-item {
-    padding: 10px 18px;
-    cursor: pointer;
-    transition: all 0.15s;
-    border-left: 2px solid transparent;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
-
-  .project-item:hover { background: var(--surface2); }
-
-  .project-item.active {
-    border-left-color: var(--teal);
-    background: var(--teal-dim);
-  }
-
-  .project-item .p-name {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text);
-    line-height: 1.4;
-  }
-
-  .project-item.active .p-name { color: var(--teal); }
-
-  .project-item .p-meta {
-    font-size: 10px;
-    color: var(--text-muted);
-  }
-
-  .p-indicators {
-    display: flex;
-    gap: 4px;
-    margin-top: 3px;
-  }
-
-  .p-tag {
-    font-size: 9px;
-    padding: 1px 5px;
-    border-radius: 3px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-  }
-
-  .p-tag.open { background: var(--amber-dim); color: var(--amber); }
-  .p-tag.closed { background: var(--green-dim); color: var(--green); }
-  .p-tag.error { background: var(--red-dim); color: var(--red); }
-
-  .sidebar-sep {
-    height: 1px;
-    background: var(--border);
-    margin: 14px 18px;
-  }
-
-  .sidebar-nav-item {
-    padding: 9px 18px;
-    cursor: pointer;
-    font-size: 12px;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border-radius: 0;
-    transition: all 0.15s;
-  }
-
-  .sidebar-nav-item:hover { color: var(--text); background: var(--surface2); }
-  .sidebar-nav-item.active { color: var(--teal); }
+  .sidebar{width:220px;min-width:220px;background:var(--surface);border-right:1px solid var(--border);padding:16px 0;display:flex;flex-direction:column;overflow-y:auto;}
+  .sidebar-label{font-size:9px;font-weight:600;letter-spacing:1.3px;color:var(--text-dim);padding:0 15px;margin-bottom:7px;text-transform:uppercase;}
+  .snav{padding:8px 15px;cursor:pointer;font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:6px;transition:all .14s;border-left:2px solid transparent;}
+  .snav:hover{color:var(--text);background:var(--surface2);}
+  .snav.active{color:var(--teal);border-left-color:var(--teal);background:var(--teal-dim);}
+  .sidebar-sep{height:1px;background:var(--border);margin:10px 15px;}
+  .pitem{padding:8px 15px;cursor:pointer;transition:all .14s;border-left:2px solid transparent;display:flex;flex-direction:column;gap:2px;}
+  .pitem:hover{background:var(--surface2);}
+  .pitem.active{border-left-color:var(--teal);background:var(--teal-dim);}
+  .pitem-name{font-size:11px;font-weight:500;color:var(--text);line-height:1.35;}
+  .pitem.active .pitem-name{color:var(--teal);}
+  .pitem-meta{font-size:9px;color:var(--text-muted);}
+  .pitem-tags{display:flex;gap:3px;margin-top:2px;flex-wrap:wrap;}
+  .ptag{font-size:9px;padding:1px 5px;border-radius:3px;font-weight:600;}
+  .ptag.open{background:var(--amber-dim);color:var(--amber);}
+  .ptag.closed{background:var(--green-dim);color:var(--green);}
+  .ptag.error{background:var(--red-dim);color:var(--red);}
+  .sidebar-add{margin:8px 15px 0;padding:8px;border:1px dashed var(--border);border-radius:7px;font-size:11px;color:var(--text-muted);cursor:pointer;text-align:center;transition:all .15s;}
+  .sidebar-add:hover{border-color:var(--teal);color:var(--teal);}
 
   /* CONTENT */
-  .content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
+  .content{flex:1;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:18px;}
+  .page-header{display:flex;align-items:flex-start;justify-content:space-between;}
+  .page-title{font-size:19px;font-weight:700;letter-spacing:-.3px;}
+  .page-sub{font-size:11px;color:var(--text-muted);margin-top:3px;}
+  .hactions{display:flex;gap:8px;align-items:center;}
 
-  /* PAGE HEADER */
-  .page-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-  }
+  /* KPI CARDS */
+  .cards-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:16px;display:flex;flex-direction:column;gap:7px;position:relative;overflow:hidden;}
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:11px 11px 0 0;}
+  .card.teal::before{background:var(--teal);}
+  .card.amber::before{background:var(--amber);}
+  .card.red::before{background:var(--red);}
+  .card.green::before{background:var(--green);}
+  .card-label{font-size:9px;font-weight:600;letter-spacing:.8px;color:var(--text-muted);text-transform:uppercase;}
+  .card-value{font-size:26px;font-weight:700;letter-spacing:-1px;line-height:1;}
+  .card.teal .card-value{color:var(--teal);}
+  .card.amber .card-value{color:var(--amber);}
+  .card.red .card-value{color:var(--red);}
+  .card.green .card-value{color:var(--green);}
+  .card-detail{font-size:10px;color:var(--text-muted);}
 
-  .page-title {
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: -0.3px;
-  }
+  /* ALERT */
+  .alert-bar{background:var(--red-dim);border:1px solid rgba(255,77,106,.3);border-radius:9px;padding:11px 14px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--red);}
+  .adot{width:7px;height:7px;border-radius:50%;background:var(--red);animation:prd 1.5s infinite;flex-shrink:0;}
+  @keyframes prd{0%,100%{box-shadow:0 0 0 0 rgba(255,77,106,.4);}50%{box-shadow:0 0 0 5px rgba(255,77,106,0);}}
 
-  .page-sub {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 4px;
-  }
+  /* SECTION */
+  .sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .sec-title{font-size:12px;font-weight:600;display:flex;align-items:center;gap:7px;}
+  .sec-title span{font-size:11px;font-weight:400;color:var(--text-muted);}
 
-  .header-actions {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
-
-  /* OVERVIEW CARDS */
-  .cards-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-  }
-
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    border-radius: 12px 12px 0 0;
-  }
-
-  .card.teal::before { background: var(--teal); }
-  .card.amber::before { background: var(--amber); }
-  .card.red::before { background: var(--red); }
-  .card.green::before { background: var(--green); }
-
-  .card-label {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.8px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-  }
-
-  .card-value {
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: -1px;
-    line-height: 1;
-  }
-
-  .card.teal .card-value { color: var(--teal); }
-  .card.amber .card-value { color: var(--amber); }
-  .card.red .card-value { color: var(--red); }
-  .card.green .card-value { color: var(--green); }
-
-  .card-detail {
-    font-size: 11px;
-    color: var(--text-muted);
-  }
-
-  /* ALERT BAR */
-  .alert-bar {
-    background: var(--red-dim);
-    border: 1px solid rgba(255,77,106,0.3);
-    border-radius: 10px;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 12px;
-    color: var(--red);
-  }
-
-  .alert-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--red);
-    animation: pulse-red 1.5s infinite;
-    flex-shrink: 0;
-  }
-
-  @keyframes pulse-red {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(255,77,106,0.4); }
-    50% { box-shadow: 0 0 0 6px rgba(255,77,106,0); }
-  }
-
-  /* SECTION TITLE */
-  .section-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-  }
-
-  .section-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .section-title span {
-    font-size: 11px;
-    font-weight: 400;
-    color: var(--text-muted);
-  }
-
-  /* TABS */
-  .tabs {
-    display: flex;
-    gap: 0;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 4px;
-    width: fit-content;
-  }
-
-  .tab {
-    padding: 6px 16px;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    border-radius: 7px;
-    color: var(--text-muted);
-    transition: all 0.2s;
-  }
-
-  .tab.active {
-    background: var(--teal);
-    color: var(--bg);
-    font-weight: 600;
-  }
-
-  /* FILTER ROW */
-  .filter-row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-
-  .filter-select {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    padding: 7px 12px;
-    border-radius: 8px;
-    outline: none;
-    cursor: pointer;
-    transition: border-color 0.2s;
-  }
-
-  .filter-select:focus { border-color: var(--teal); }
-
-  .filter-search {
-    flex: 1;
-    max-width: 260px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    padding: 7px 12px;
-    border-radius: 8px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .filter-search:focus { border-color: var(--teal); }
-  .filter-search::placeholder { color: var(--text-dim); }
+  /* FILTERS */
+  .frow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .fsel{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Inter',sans-serif;font-size:11px;padding:6px 10px;border-radius:7px;outline:none;cursor:pointer;transition:border-color .18s;}
+  .fsel:focus{border-color:var(--teal);}
+  .fsrch{flex:1;max-width:230px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Inter',sans-serif;font-size:11px;padding:6px 10px;border-radius:7px;outline:none;transition:border-color .18s;}
+  .fsrch:focus{border-color:var(--teal);}
+  .fsrch::placeholder{color:var(--text-dim);}
 
   /* TABLE */
-  .table-wrap {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-  }
+  .twrap{background:var(--surface);border:1px solid var(--border);border-radius:11px;overflow:hidden;}
+  .tscroll{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:11px;}
+  thead{background:var(--surface2);border-bottom:1px solid var(--border);}
+  th{padding:10px 12px;text-align:left;font-size:9px;font-weight:600;letter-spacing:.7px;text-transform:uppercase;color:var(--text-muted);white-space:nowrap;}
+  td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:var(--surface2);}
+  td.mu{color:var(--text-muted);}
+  td.nr,th.nr{font-variant-numeric:tabular-nums;text-align:right;}
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-  }
+  /* BADGE STATUS */
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:9px;font-weight:600;letter-spacing:.5px;cursor:pointer;transition:all .18s;white-space:nowrap;border:1px solid transparent;}
+  .bdot{width:4px;height:4px;border-radius:50%;flex-shrink:0;}
+  .badge.open{background:var(--amber-dim);color:var(--amber);border-color:rgba(245,166,35,.3);}
+  .badge.open .bdot{background:var(--amber);animation:pam 2s infinite;}
+  .badge.closed{background:var(--green-dim);color:var(--green);border-color:rgba(54,211,153,.3);}
+  .badge.closed .bdot{background:var(--green);}
+  .badge.error{background:var(--red-dim);color:var(--red);border-color:rgba(255,77,106,.3);}
+  .badge.error .bdot{background:var(--red);animation:prd 1.5s infinite;}
+  @keyframes pam{0%,100%{box-shadow:0 0 0 0 rgba(245,166,35,.4);}50%{box-shadow:0 0 0 3px rgba(245,166,35,0);}}
 
-  thead {
-    background: var(--surface2);
-    border-bottom: 1px solid var(--border);
-  }
+  /* PROJ GRID */
+  .pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .pcard{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px;cursor:pointer;transition:all .2s;}
+  .pcard:hover{border-color:var(--teal);transform:translateY(-1px);}
+  .pcard.active{border-color:var(--teal);background:var(--teal-dim);}
+  .pcard-loc{font-size:9px;font-weight:600;color:var(--text-dim);letter-spacing:.5px;margin-bottom:4px;}
+  .pcard-name{font-size:11px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:9px;}
+  .pstats{display:flex;gap:7px;}
+  .pstat{display:flex;flex-direction:column;gap:1px;}
+  .pstat-num{font-size:15px;font-weight:700;letter-spacing:-.5px;}
+  .pstat-label{font-size:8px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;}
+  .pstat.open .pstat-num{color:var(--amber);}
+  .pstat.closed .pstat-num{color:var(--green);}
+  .pstat.error .pstat-num{color:var(--red);}
+  .pprog{margin-top:10px;height:3px;background:var(--surface2);border-radius:2px;overflow:hidden;}
+  .pprog-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--green));border-radius:2px;}
 
-  th {
-    padding: 11px 14px;
-    text-align: left;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.7px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    white-space: nowrap;
-  }
+  /* SUPPLIER */
+  .cash-big{font-size:12px;font-variant-numeric:tabular-nums;font-weight:600;color:var(--amber);}
+  .tag-kecil{font-size:9px;color:var(--text-muted);background:var(--surface2);padding:1px 6px;border-radius:3px;border:1px solid var(--border);}
 
-  td {
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    color: var(--text);
-    vertical-align: middle;
-  }
+  /* MODAL */
+  .overlay{display:none;position:fixed;inset:0;background:rgba(10,22,40,.88);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
+  .overlay.show{display:flex;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:580px;max-width:96vw;max-height:88vh;overflow-y:auto;}
+  .modal-title{font-size:15px;font-weight:700;margin-bottom:5px;}
+  .modal-sub{font-size:11px;color:var(--text-muted);margin-bottom:16px;line-height:1.65;}
+  .mlabel{font-size:10px;font-weight:600;color:var(--text-muted);margin-bottom:4px;display:block;letter-spacing:.3px;}
+  .minput{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'Inter',sans-serif;font-size:11px;padding:8px 11px;outline:none;margin-bottom:9px;transition:border-color .18s;}
+  .minput:focus{border-color:var(--teal);}
+  .minput::placeholder{color:var(--text-dim);}
+  .mactions{display:flex;gap:7px;margin-top:16px;justify-content:flex-end;}
+  .btn{padding:7px 15px;border-radius:7px;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;cursor:pointer;border:none;transition:all .18s;}
+  .btn-primary{background:var(--teal);color:var(--bg);}
+  .btn-primary:hover{filter:brightness(1.1);}
+  .btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border);}
+  .btn-ghost:hover{color:var(--text);border-color:var(--text-muted);}
+  .btn-danger{background:transparent;color:var(--red);border:1px solid rgba(255,77,106,.3);}
+  .btn-danger:hover{background:var(--red-dim);}
 
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--surface2); }
+  /* SETUP PROJ ROWS */
+  .psetup-row{border:1px solid var(--border);border-radius:10px;margin-bottom:9px;overflow:hidden;}
+  .psetup-hd{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:var(--surface2);cursor:pointer;}
+  .psetup-name{font-size:12px;font-weight:600;}
+  .psetup-meta{font-size:9px;color:var(--text-muted);margin-top:1px;}
+  .psetup-stat{font-size:9px;padding:2px 7px;border-radius:10px;font-weight:600;}
+  .psetup-stat.ok{background:var(--green-dim);color:var(--green);}
+  .psetup-stat.empty{background:var(--surface);color:var(--text-dim);border:1px solid var(--border);}
+  .psetup-body{padding:13px;display:none;border-top:1px solid var(--border);}
+  .psetup-body.open{display:block;}
 
-  /* STATUS BADGE */
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 3px 9px;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
+  /* EMPTY STATE */
+  .estate{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:45vh;gap:14px;text-align:center;}
+  .estate-icon{width:54px;height:54px;border-radius:14px;background:var(--teal-dim);border:1px solid var(--teal);display:flex;align-items:center;justify-content:center;font-size:24px;}
 
-  .badge-dot {
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .badge.open { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
-  .badge.open .badge-dot { background: var(--amber); animation: pulse-amber 2s infinite; }
-  .badge.closed { background: var(--green-dim); color: var(--green); border: 1px solid rgba(54,211,153,0.3); }
-  .badge.closed .badge-dot { background: var(--green); }
-  .badge.error { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,77,106,0.3); }
-  .badge.error .badge-dot { background: var(--red); animation: pulse-red 1.5s infinite; }
-
-  @keyframes pulse-amber {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(245,166,35,0.4); }
-    50% { box-shadow: 0 0 0 4px rgba(245,166,35,0); }
-  }
-
-  /* INDIKATOR STOK */
-  .stok-bar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .stok-track {
-    flex: 1;
-    height: 4px;
-    background: var(--surface2);
-    border-radius: 2px;
-    overflow: hidden;
-    max-width: 80px;
-  }
-
-  .stok-fill {
-    height: 100%;
-    border-radius: 2px;
-    transition: width 0.3s;
-  }
-
-  .stok-label {
-    font-size: 10px;
-    color: var(--text-muted);
-    white-space: nowrap;
-  }
-
-  /* NUMBER EDIT */
-  .num-edit {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .num-val {
-    font-size: 12px;
-    font-weight: 500;
-    min-width: 30px;
-    text-align: center;
-  }
-
-  .num-btn {
-    width: 20px; height: 20px;
-    border-radius: 4px;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 13px;
-    line-height: 1;
-    transition: all 0.15s;
-  }
-
-  .num-btn:hover { border-color: var(--teal); color: var(--teal); }
-
-  /* PROJECTS OVERVIEW GRID */
-  .projects-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-  }
-
-  .proj-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .proj-card:hover { border-color: var(--teal); transform: translateY(-1px); }
-  .proj-card.active { border-color: var(--teal); background: var(--teal-dim); }
-
-  .proj-card-num {
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--text-dim);
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
-  }
-
-  .proj-card-name {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text);
-    line-height: 1.4;
-    margin-bottom: 10px;
-  }
-
-  .proj-stats {
-    display: flex;
-    gap: 8px;
-  }
-
-  .proj-stat {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .proj-stat-num {
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-  }
-
-  .proj-stat-label {
-    font-size: 9px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .proj-stat.open .proj-stat-num { color: var(--amber); }
-  .proj-stat.closed .proj-stat-num { color: var(--green); }
-  .proj-stat.error .proj-stat-num { color: var(--red); }
-
-  .proj-progress {
-    margin-top: 12px;
-    height: 3px;
-    background: var(--surface2);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-
-  .proj-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--teal), var(--green));
-    border-radius: 2px;
-  }
-
-  /* SUPPLIER TABLE */
-  .cash-value {
-    font-variant-numeric: tabular-nums;
-    font-weight: 500;
-  }
-
-  .cash-value.big { font-size: 13px; color: var(--amber); }
-
-  /* MODAL / SHEET LINK OVERLAY */
-  .overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(10,22,40,0.85);
-    z-index: 200;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(4px);
-  }
-
-  .overlay.show { display: flex; }
-
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 28px;
-    width: 400px;
-    max-width: 90vw;
-  }
-
-  .modal-title {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
-
-  .modal-sub {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-bottom: 20px;
-    line-height: 1.6;
-  }
-
-  .modal-input {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    padding: 10px 14px;
-    outline: none;
-    margin-bottom: 10px;
-    transition: border-color 0.2s;
-  }
-
-  .modal-input:focus { border-color: var(--teal); }
-  .modal-input::placeholder { color: var(--text-dim); }
-
-  .modal-label {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--text-muted);
-    margin-bottom: 6px;
-    display: block;
-  }
-
-  .modal-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-    justify-content: flex-end;
-  }
-
-  .btn {
-    padding: 8px 18px;
-    border-radius: 8px;
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: all 0.2s;
-  }
-
-  .btn-primary { background: var(--teal); color: var(--bg); }
-  .btn-primary:hover { filter: brightness(1.1); }
-  .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
-  .btn-ghost:hover { color: var(--text); border-color: var(--text-muted); }
-
-  /* SETUP PAGE */
-  .setup-page {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 50vh;
-    gap: 16px;
-    text-align: center;
-  }
-
-  .setup-icon {
-    width: 64px; height: 64px;
-    border-radius: 16px;
-    background: var(--teal-dim);
-    border: 1px solid var(--teal);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-  }
-
-  .setup-title {
-    font-size: 18px;
-    font-weight: 700;
-  }
-
-  .setup-desc {
-    font-size: 13px;
-    color: var(--text-muted);
-    max-width: 400px;
-    line-height: 1.7;
-  }
-
-  /* HIDDEN */
-  .hidden { display: none !important; }
-
-  /* SCROLLBAR */
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-  /* TOAST */
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background: var(--surface);
-    border: 1px solid var(--green);
-    color: var(--green);
-    padding: 12px 18px;
-    border-radius: 10px;
-    font-size: 12px;
-    font-weight: 500;
-    z-index: 300;
-    transform: translateY(80px);
-    opacity: 0;
-    transition: all 0.3s;
-  }
-
-  .toast.show { transform: translateY(0); opacity: 1; }
-
-  /* RESPONSIVE TABLES */
-  .table-scroll { overflow-x: auto; }
-
-  td.muted { color: var(--text-muted); }
-  td.num { font-variant-numeric: tabular-nums; text-align: right; }
-  th.num { text-align: right; }
-
-  .tag-kecil {
-    font-size: 10px;
-    color: var(--text-muted);
-    background: var(--surface2);
-    padding: 2px 7px;
-    border-radius: 4px;
-    border: 1px solid var(--border);
-  }
+  .hidden{display:none!important;}
+  ::-webkit-scrollbar{width:4px;height:4px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+  .toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--green);color:var(--green);padding:10px 15px;border-radius:8px;font-size:11px;font-weight:500;z-index:300;transform:translateY(60px);opacity:0;transition:all .28s;}
+  .toast.show{transform:translateY(0);opacity:1;}
+  .toast.err{border-color:var(--red);color:var(--red);}
 </style>
 </head>
 <body>
 
-<!-- TOPBAR -->
 <div class="topbar">
   <div class="brand">
-    <div class="brand-icon">P</div>
+    <div class="logo-mark"></div>
     <div>
       <div class="brand-name">Panata Bayu Nugraha</div>
-      <div class="brand-sub">Material Dashboard — Sekolah Rakyat 2026</div>
+      <div class="brand-sub">Dashboard — Proyek Saat Ini</div>
     </div>
   </div>
   <div class="topbar-right">
     <div class="sync-status">
-      <div class="sync-dot"></div>
-      <span id="syncLabel">Menghubungkan ke Sheets…</span>
+      <div class="sync-dot dim" id="syncDot"></div>
+      <span id="syncLabel">Menginisialisasi…</span>
     </div>
     <div class="date-badge" id="dateBadge">—</div>
-    <a href="#" id="sheetsLink" class="btn-sheets" target="_blank">
-      ↗ Buka Google Sheets
-    </a>
-    <button class="btn-sheets" onclick="openSetup()">⚙ Setup</button>
+    <a href="index.html" class="btn-top">← Beranda</a>
+    <button class="btn-top teal" onclick="openSetupModal()">⚙ Kelola Proyek</button>
   </div>
 </div>
 
-<!-- MAIN -->
 <div class="main">
-
-  <!-- SIDEBAR -->
   <div class="sidebar">
-    <div class="sidebar-label">Navigasi</div>
-    <div class="sidebar-nav-item active" onclick="showView('overview')" id="nav-overview">
-      ▦ Overview Semua Proyek
-    </div>
-    <div class="sidebar-nav-item" onclick="showView('material')" id="nav-material">
-      ≡ Rekapitulasi Material
-    </div>
-    <div class="sidebar-nav-item" onclick="showView('supplier')" id="nav-supplier">
-      $ Rekapitulasi Supplier
-    </div>
+    <div class="sidebar-label">Tampilan</div>
+    <div class="snav active" onclick="showView('overview')" id="nav-overview">▦ Overview Semua</div>
+    <div class="snav" onclick="showView('material')" id="nav-material">≡ Material</div>
+    <div class="snav" onclick="showView('supplier')" id="nav-supplier">$ Supplier</div>
     <div class="sidebar-sep"></div>
     <div class="sidebar-label">Proyek Aktif</div>
     <div id="projectList"></div>
+    <div class="sidebar-add" onclick="openSetupModal()">+ Tambah Proyek</div>
   </div>
 
-  <!-- CONTENT -->
-  <div class="content" id="mainContent">
+  <div class="content">
 
-    <!-- SETUP PAGE -->
-    <div id="viewSetup" class="setup-page">
-      <div class="setup-icon">📊</div>
-      <div class="setup-title">Hubungkan Google Sheets</div>
-      <div class="setup-desc">
-        Dashboard ini membaca data langsung dari Google Sheets yang kamu publish. Ikuti langkah di bawah untuk setup koneksi.
+    <!-- EMPTY -->
+    <div id="viewEmpty" class="estate">
+      <div class="estate-icon">📊</div>
+      <div style="font-size:16px;font-weight:700;">Belum ada proyek</div>
+      <div style="font-size:12px;color:var(--text-muted);max-width:340px;line-height:1.7;">
+        Klik "Kelola Proyek" untuk menambah proyek dan menghubungkan Google Sheets CSV masing-masing.
       </div>
-      <button class="btn btn-primary" onclick="openSetup()">Mulai Setup</button>
+      <button class="btn btn-primary" onclick="openSetupModal()">Mulai Setup</button>
     </div>
 
-    <!-- OVERVIEW VIEW -->
+    <!-- OVERVIEW -->
     <div id="viewOverview" class="hidden">
       <div class="page-header">
         <div>
-          <div class="page-title">Overview Proyek 2026</div>
-          <div class="page-sub" id="overviewSub">Memuat data…</div>
+          <div class="page-title">Overview Proyek Aktif</div>
+          <div class="page-sub" id="overviewSub">Memuat…</div>
         </div>
-        <div class="header-actions">
+        <div class="hactions">
           <button class="btn btn-ghost" onclick="fetchAllData()">↻ Refresh</button>
         </div>
       </div>
-
-      <!-- KPI CARDS -->
-      <div class="cards-row" id="kpiCards">
-        <div class="card teal">
-          <div class="card-label">Total Proyek</div>
-          <div class="card-value" id="kpi-proyek">—</div>
-          <div class="card-detail">Proyek aktif 2026</div>
-        </div>
-        <div class="card amber">
-          <div class="card-label">Item OPEN</div>
-          <div class="card-value" id="kpi-open">—</div>
-          <div class="card-detail">Belum selesai</div>
-        </div>
-        <div class="card red">
-          <div class="card-label">Item ERROR</div>
-          <div class="card-value" id="kpi-error">—</div>
-          <div class="card-detail">Perlu tindakan</div>
-        </div>
-        <div class="card green">
-          <div class="card-label">Item CLOSED</div>
-          <div class="card-value" id="kpi-closed">—</div>
-          <div class="card-detail">Selesai</div>
-        </div>
+      <div class="cards-row">
+        <div class="card teal"><div class="card-label">Total Proyek</div><div class="card-value" id="kpi-proyek">—</div><div class="card-detail">Terdaftar</div></div>
+        <div class="card amber"><div class="card-label">Item OPEN</div><div class="card-value" id="kpi-open">—</div><div class="card-detail">Belum selesai</div></div>
+        <div class="card red"><div class="card-label">Item ERROR</div><div class="card-value" id="kpi-error">—</div><div class="card-detail">Perlu tindakan</div></div>
+        <div class="card green"><div class="card-label">Item CLOSED</div><div class="card-value" id="kpi-closed">—</div><div class="card-detail">Selesai</div></div>
       </div>
-
-      <!-- ALERT -->
-      <div class="alert-bar" id="alertBar" style="display:none">
-        <div class="alert-dot"></div>
-        <span id="alertText">Ada item yang membutuhkan perhatian</span>
+      <div class="alert-bar hidden" id="alertBar">
+        <div class="adot"></div>
+        <span id="alertText"></span>
       </div>
-
-      <!-- PROJECTS GRID -->
       <div>
-        <div class="section-head">
-          <div class="section-title">Status Per Proyek <span>klik untuk drill-down</span></div>
+        <div class="sec-head">
+          <div class="sec-title">Status Per Proyek <span>klik untuk drill-down</span></div>
         </div>
-        <div class="projects-grid" id="projectsGrid">
-          <div style="color:var(--text-muted);font-size:12px;padding:20px;grid-column:1/-1">Menunggu data dari Google Sheets…</div>
-        </div>
+        <div class="pgrid" id="projectsGrid"></div>
       </div>
     </div>
 
-    <!-- MATERIAL VIEW -->
+    <!-- MATERIAL -->
     <div id="viewMaterial" class="hidden">
       <div class="page-header">
         <div>
           <div class="page-title" id="materialTitle">Rekapitulasi Material</div>
           <div class="page-sub" id="materialSub">PM → PO → SJ</div>
         </div>
-        <div class="header-actions">
-          <a href="#" id="editMaterialLink" class="btn-sheets" target="_blank">↗ Edit di Sheets</a>
+        <div class="hactions">
+          <a href="#" id="editMaterialLink" class="btn-top teal" target="_blank">↗ Buka Sheets</a>
         </div>
       </div>
-
-      <div class="filter-row">
-        <select class="filter-select" id="filterStatus" onchange="applyFilters()">
+      <div class="frow">
+        <select class="fsel" id="filterStatus" onchange="applyFilters()">
           <option value="">Semua Status</option>
           <option value="OPEN">OPEN</option>
-          <option value="CLOSED">CLOSED (✓)</option>
+          <option value="CLOSED">CLOSED</option>
           <option value="ERROR">ERROR</option>
         </select>
-        <select class="filter-select" id="filterProject" onchange="applyFilters()">
+        <select class="fsel" id="filterProject" onchange="applyFilters()">
           <option value="">Semua Proyek</option>
         </select>
-        <input class="filter-search" type="text" placeholder="Cari material…" id="searchMaterial" oninput="applyFilters()">
+        <input class="fsrch" type="text" placeholder="Cari material…" id="searchMaterial" oninput="applyFilters()">
       </div>
-
-      <div class="table-wrap table-scroll">
-        <table id="materialTable">
-          <thead>
-            <tr>
-              <th>No</th>
-              <th>Material</th>
-              <th>Supplier</th>
-              <th class="num">Total PM</th>
-              <th class="num">Total PO</th>
-              <th class="num">Total SJ</th>
-              <th class="num">Sisa</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="materialBody">
-            <tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:32px">Menunggu data…</td></tr>
-          </tbody>
+      <div class="twrap tscroll">
+        <table>
+          <thead><tr>
+            <th>No</th><th>Material</th><th>Supplier</th>
+            <th class="nr">PM</th><th class="nr">PO</th><th class="nr">SJ</th>
+            <th class="nr">Sisa</th><th>Status</th>
+          </tr></thead>
+          <tbody id="materialBody"><tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:28px">Menunggu data…</td></tr></tbody>
         </table>
       </div>
     </div>
 
-    <!-- SUPPLIER VIEW -->
+    <!-- SUPPLIER -->
     <div id="viewSupplier" class="hidden">
       <div class="page-header">
         <div>
           <div class="page-title">Rekapitulasi Supplier</div>
-          <div class="page-sub">Cash out & purchase orders per supplier</div>
+          <div class="page-sub">Cash out & purchase orders</div>
         </div>
-        <div class="header-actions">
-          <a href="#" id="editSupplierLink" class="btn-sheets" target="_blank">↗ Edit di Sheets</a>
+        <div class="hactions">
+          <a href="#" id="editSupplierLink" class="btn-top teal" target="_blank">↗ Buka Sheets</a>
         </div>
       </div>
-
-      <div class="filter-row">
-        <select class="filter-select" id="filterSupplierProject" onchange="applySupplierFilters()">
+      <div class="frow">
+        <select class="fsel" id="filterSupplierProject" onchange="applySupplierFilters()">
           <option value="">Semua Proyek</option>
         </select>
-        <input class="filter-search" type="text" placeholder="Cari supplier…" id="searchSupplier" oninput="applySupplierFilters()">
+        <input class="fsrch" type="text" placeholder="Cari supplier…" id="searchSupplier" oninput="applySupplierFilters()">
       </div>
-
-      <div class="table-wrap table-scroll">
-        <table id="supplierTable">
-          <thead>
-            <tr>
-              <th>No</th>
-              <th>Supplier</th>
-              <th>ID PO</th>
-              <th>Item Material</th>
-              <th class="num">Cash Out</th>
-              <th>Keterangan</th>
-            </tr>
-          </thead>
-          <tbody id="supplierBody">
-            <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px">Menunggu data…</td></tr>
-          </tbody>
+      <div class="twrap tscroll">
+        <table>
+          <thead><tr><th>No</th><th>Supplier</th><th>ID PO</th><th>Item</th><th class="nr">Cash Out</th><th>Ket.</th></tr></thead>
+          <tbody id="supplierBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:28px">Menunggu data…</td></tr></tbody>
         </table>
       </div>
-
-      <!-- TOTAL -->
-      <div class="card amber" style="max-width:300px;margin-left:auto">
+      <div class="card amber" style="max-width:270px;margin-left:auto;margin-top:4px;">
         <div class="card-label">Total Cash Out</div>
         <div class="card-value" id="totalCashOut">Rp —</div>
-        <div class="card-detail" id="totalCashOutSub">dari semua supplier</div>
+        <div class="card-detail" id="totalCashOutSub">—</div>
       </div>
     </div>
 
@@ -1028,643 +334,436 @@
 <!-- SETUP MODAL -->
 <div class="overlay" id="setupModal">
   <div class="modal">
-    <div class="modal-title">⚙ Setup Google Sheets</div>
+    <div class="modal-title">⚙ Kelola Proyek</div>
     <div class="modal-sub">
-      Publish setiap sheet ke web sebagai CSV, lalu paste URL-nya di sini.<br>
-      <strong>File → Share → Publish to web → pilih sheet → CSV → Publish</strong>
+      Setiap proyek punya Google Sheets sendiri. Hubungkan via URL CSV.<br>
+      <strong>Cara dapat URL:</strong> Buka Sheets → File → Share → Publish to web → pilih sheet → CSV → Publish → copy URL.
     </div>
-
-    <label class="modal-label">URL Sheet: RAKAP_PM_PO_SJ (sebagai CSV)</label>
-    <input class="modal-input" id="urlRakap" type="url" placeholder="https://docs.google.com/spreadsheets/d/…/pub?gid=…&single=true&output=csv">
-
-    <label class="modal-label">URL Sheet: REKAP_SUPPLIER (sebagai CSV)</label>
-    <input class="modal-input" id="urlSupplier" type="url" placeholder="https://docs.google.com/spreadsheets/d/…/pub?gid=…&single=true&output=csv">
-
-    <label class="modal-label">URL Google Sheets (untuk tombol Edit)</label>
-    <input class="modal-input" id="urlSheets" type="url" placeholder="https://docs.google.com/spreadsheets/d/…/edit">
-
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeSetup()">Batal</button>
-      <button class="btn btn-primary" onclick="saveSetup()">Simpan & Muat Data</button>
+    <div id="projSetupList"></div>
+    <button class="btn btn-ghost" style="width:100%;margin-top:4px;" onclick="addProjectDraft()">+ Tambah Proyek Baru</button>
+    <div class="mactions">
+      <button class="btn btn-ghost" onclick="closeSetupModal()">Tutup</button>
+      <button class="btn btn-primary" onclick="saveAllProjects()">Simpan & Muat Ulang</button>
     </div>
   </div>
 </div>
 
-<!-- STATUS EDIT MODAL -->
+<!-- STATUS MODAL -->
 <div class="overlay" id="statusModal">
-  <div class="modal">
-    <div class="modal-title">Ubah Status</div>
+  <div class="modal" style="width:400px;">
+    <div class="modal-title">Ubah Status Material</div>
     <div class="modal-sub" id="statusModalSub">—</div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <button class="badge open" style="padding:10px 20px;font-size:12px;" onclick="confirmStatus('OPEN')">
-        <div class="badge-dot"></div> OPEN
-      </button>
-      <button class="badge closed" style="padding:10px 20px;font-size:12px;" onclick="confirmStatus('CLOSED')">
-        <div class="badge-dot"></div> CLOSED (✓)
-      </button>
-      <button class="badge error" style="padding:10px 20px;font-size:12px;" onclick="confirmStatus('ERROR')">
-        <div class="badge-dot"></div> ERROR
-      </button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="badge open" style="padding:9px 16px;font-size:11px;" onclick="confirmStatus('OPEN')"><div class="bdot"></div>OPEN</button>
+      <button class="badge closed" style="padding:9px 16px;font-size:11px;" onclick="confirmStatus('CLOSED')"><div class="bdot"></div>CLOSED ✓</button>
+      <button class="badge error" style="padding:9px 16px;font-size:11px;" onclick="confirmStatus('ERROR')"><div class="bdot"></div>ERROR</button>
     </div>
-    <div style="margin-top:14px;font-size:11px;color:var(--text-muted);line-height:1.6">
-      ⚠ Perubahan status hanya tersimpan di dashboard ini (sesi ini). Untuk perubahan permanen, edit langsung di Google Sheets.
+    <div style="margin-top:11px;font-size:10px;color:var(--text-muted);line-height:1.6;">
+      ⚠ Perubahan tersimpan di browser saja. Untuk permanen, edit langsung di Google Sheets.
     </div>
-    <div class="modal-actions">
+    <div class="mactions">
       <button class="btn btn-ghost" onclick="closeStatusModal()">Batal</button>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
-<div class="toast" id="toast">✓ Status diperbarui</div>
+<div class="toast" id="toast"></div>
 
 <script>
-// =====================
-// STATE
-// =====================
-let config = {
-  urlRakap: '',
-  urlSupplier: '',
-  urlSheets: '',
-};
-
-let data = {
-  rakap: [],    // RAKAP_PM_PO_SJ rows
-  supplier: [], // REKAP_SUPPLIER rows
-};
-
-// Local overrides (status changed in dashboard)
+// ── STATE ────────────────────────────────────────────
+let PROJECTS = [];
+let data = { rakap: [], supplier: [] };
 let localOverrides = {};
-
-const PROJECTS = [
-  { id: 1, name: "Sekolah Rakyat Kab. Barru (Sulsel)" },
-  { id: 2, name: "Sekolah Rakyat Kab. Sidrap (Sulsel)" },
-  { id: 3, name: "Sekolah Rakyat Kab. Wajo (Sulsel)" },
-  { id: 4, name: "Sekolah Rakyat Ogan Komering Ilir (Sumsel)" },
-  { id: 5, name: "Sekolah Rakyat Ogan Ilir (Sumsel)" },
-  { id: 6, name: "Sekolah Rakyat Nagan Raya (Aceh)" },
-  { id: 7, name: "Sekolah Rakyat Subulussalam (Aceh)" },
-  { id: 8, name: "Ponpes Al-Khoziny (Sidoharjo)" },
-];
-
-let activeView = 'setup';
+let activeView = 'empty';
 let activeProjectId = null;
 let statusEditTarget = null;
+let draftProjects = [];
 
-// =====================
-// INIT
-// =====================
+// ── INIT ─────────────────────────────────────────────
 function init() {
-  // Load config from localStorage
-  const saved = localStorage.getItem('panata_config');
-  if (saved) {
-    config = JSON.parse(saved);
-    document.getElementById('urlRakap').value = config.urlRakap || '';
-    document.getElementById('urlSupplier').value = config.urlSupplier || '';
-    document.getElementById('urlSheets').value = config.urlSheets || '';
-  }
-
-  const savedOverrides = localStorage.getItem('panata_overrides');
-  if (savedOverrides) localOverrides = JSON.parse(savedOverrides);
-
   updateDate();
+  const sp = localStorage.getItem('panata_projects');
+  if (sp) PROJECTS = JSON.parse(sp);
+  const so = localStorage.getItem('panata_overrides');
+  if (so) localOverrides = JSON.parse(so);
   renderSidebar();
-
-  if (config.urlRakap || config.urlSupplier) {
-    fetchAllData();
-    showView('overview');
-  } else {
-    showView('setup');
-    document.getElementById('syncLabel').textContent = 'Belum terhubung';
-  }
+  populateFilters();
+  if (PROJECTS.length === 0) { showView('empty'); return; }
+  fetchAllData().then(() => showView('overview'));
 }
 
 function updateDate() {
-  const d = new Date();
   document.getElementById('dateBadge').textContent =
-    d.toLocaleDateString('id-ID', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+    new Date().toLocaleDateString('id-ID', {weekday:'short',day:'numeric',month:'short',year:'numeric'});
 }
 
-// =====================
-// SIDEBAR
-// =====================
+// ── SIDEBAR ──────────────────────────────────────────
 function renderSidebar() {
   const list = document.getElementById('projectList');
   list.innerHTML = '';
   PROJECTS.forEach(p => {
+    const s = stats(p.id);
     const el = document.createElement('div');
-    el.className = 'project-item' + (activeProjectId === p.id ? ' active' : '');
+    el.className = 'pitem' + (activeProjectId === p.id ? ' active' : '');
     el.onclick = () => drillDown(p.id);
-
-    const stats = getProjectStats(p.id);
     el.innerHTML = `
-      <div class="p-name">${p.id}. ${p.name.split(' Kab.')[0].replace('Sekolah Rakyat', 'SR').trim()} ${p.name.includes('Kab.') ? p.name.match(/Kab\.\s*\S+/)?.[0] || '' : p.name.split('(')[1]?.replace(')','') || ''}</div>
-      <div class="p-meta">${p.name.split('(')[1]?.replace(')','') || ''}</div>
-      <div class="p-indicators">
-        ${stats.open > 0 ? `<span class="p-tag open">${stats.open} open</span>` : ''}
-        ${stats.error > 0 ? `<span class="p-tag error">${stats.error} err</span>` : ''}
-        ${stats.closed > 0 ? `<span class="p-tag closed">${stats.closed} done</span>` : ''}
-      </div>
-    `;
+      <div class="pitem-name">${p.name}</div>
+      <div class="pitem-meta">${p.location || ''}</div>
+      <div class="pitem-tags">
+        ${s.open   > 0 ? `<span class="ptag open">${s.open} open</span>` : ''}
+        ${s.error  > 0 ? `<span class="ptag error">${s.error} err</span>` : ''}
+        ${s.closed > 0 ? `<span class="ptag closed">${s.closed} ✓</span>` : ''}
+      </div>`;
     list.appendChild(el);
   });
 }
 
-function getProjectStats(projectId) {
-  // If we have real data, compute from it
-  // Otherwise return demo
-  if (data.rakap.length === 0) {
-    // Demo numbers
-    const demos = [
-      {open:12,closed:28,error:2},
-      {open:8,closed:22,error:1},
-      {open:15,closed:19,error:3},
-      {open:5,closed:35,error:0},
-      {open:20,closed:15,error:1},
-      {open:9,closed:25,error:2},
-      {open:11,closed:18,error:4},
-      {open:6,closed:30,error:1},
-    ];
-    return demos[(projectId-1) % 8];
-  }
-  const rows = data.rakap.filter(r => r.project_id === projectId);
+function stats(pid) {
+  const rows = data.rakap.filter(r => r.project_id === pid);
   return {
-    open: rows.filter(r => getStatus(r) === 'OPEN').length,
-    closed: rows.filter(r => getStatus(r) === 'CLOSED').length,
-    error: rows.filter(r => getStatus(r) === 'ERROR').length,
+    open:   rows.filter(r => getStatus(r) === 'OPEN').length,
+    closed: rows.filter(r => getStatus(r).includes('CLOSED')).length,
+    error:  rows.filter(r => getStatus(r) === 'ERROR').length,
   };
 }
 
 function getStatus(row) {
-  const key = `${row.project_id}_${row.no}`;
-  if (localOverrides[key]) return localOverrides[key];
-  return row.status || '';
+  return localOverrides[`${row.project_id}_${row.no}`] || row.status || '';
 }
 
-// =====================
-// SETUP
-// =====================
-function openSetup() {
-  document.getElementById('setupModal').classList.add('show');
-}
-
-function closeSetup() {
-  document.getElementById('setupModal').classList.remove('show');
-}
-
-function saveSetup() {
-  config.urlRakap = document.getElementById('urlRakap').value.trim();
-  config.urlSupplier = document.getElementById('urlSupplier').value.trim();
-  config.urlSheets = document.getElementById('urlSheets').value.trim();
-  localStorage.setItem('panata_config', JSON.stringify(config));
-
-  if (config.urlSheets) {
-    document.getElementById('sheetsLink').href = config.urlSheets;
-    document.getElementById('editMaterialLink').href = config.urlSheets;
-    document.getElementById('editSupplierLink').href = config.urlSheets;
-  }
-
-  closeSetup();
-  fetchAllData();
-  showView('overview');
-}
-
-// =====================
-// FETCH DATA
-// =====================
+// ── FETCH ────────────────────────────────────────────
 async function fetchAllData() {
-  document.getElementById('syncLabel').textContent = 'Mengambil data…';
+  const dot = document.getElementById('syncDot');
+  const lbl = document.getElementById('syncLabel');
+  dot.className = 'sync-dot dim'; lbl.textContent = 'Mengambil data…';
+  data.rakap = []; data.supplier = [];
+  let ok = 0;
 
-  if (!config.urlRakap && !config.urlSupplier) {
-    document.getElementById('syncLabel').textContent = 'Belum terhubung — setup dulu';
-    loadDemoData();
-    return;
-  }
-
-  let ok = false;
-
-  if (config.urlRakap) {
-    try {
-      const res = await fetch(config.urlRakap);
-      const text = await res.text();
-      data.rakap = parseCSV(text, 'rakap');
-      ok = true;
-    } catch(e) {
-      console.warn('Gagal fetch RAKAP:', e);
+  await Promise.all(PROJECTS.map(async p => {
+    if (p.urlRakap) {
+      try {
+        const rows = parseCSV(await (await fetch(p.urlRakap)).text());
+        rows.forEach(r => { r.project_id = p.id; r.project_name = p.name; });
+        data.rakap.push(...rows); ok++;
+      } catch(e) { console.warn('RAKAP fail', p.name, e); }
     }
-  }
-
-  if (config.urlSupplier) {
-    try {
-      const res = await fetch(config.urlSupplier);
-      const text = await res.text();
-      data.supplier = parseCSV(text, 'supplier');
-      ok = true;
-    } catch(e) {
-      console.warn('Gagal fetch SUPPLIER:', e);
+    if (p.urlSupplier) {
+      try {
+        const rows = parseCSV(await (await fetch(p.urlSupplier)).text());
+        rows.forEach(r => { r.project_id = p.id; r.project_name = p.name; });
+        data.supplier.push(...rows);
+      } catch(e) { console.warn('SUPPLIER fail', p.name, e); }
     }
-  }
+  }));
 
-  if (ok) {
-    document.getElementById('syncLabel').textContent = 'Terhubung — ' + new Date().toLocaleTimeString('id-ID');
-  } else {
-    document.getElementById('syncLabel').textContent = 'Gagal — cek URL atau CORS';
-    loadDemoData();
+  if (ok > 0) {
+    dot.className = 'sync-dot';
+    lbl.textContent = `${ok}/${PROJECTS.length} proyek terhubung — ${new Date().toLocaleTimeString('id-ID')}`;
+  } else if (PROJECTS.length > 0) {
+    dot.className = 'sync-dot err';
+    lbl.textContent = 'Gagal fetch — cek URL CSV atau publish Sheets';
   }
-
   renderAll();
 }
 
-// =====================
-// CSV PARSER
-// =====================
-function parseCSV(text, type) {
+// ── CSV ──────────────────────────────────────────────
+function parseCSV(text) {
   const lines = text.split('\n').filter(l => l.trim());
   if (lines.length < 2) return [];
-
-  const headers = parseCSVLine(lines[0]);
-  const rows = [];
-
-  for (let i = 1; i < lines.length; i++) {
-    const vals = parseCSVLine(lines[i]);
-    const obj = {};
+  const headers = csvLine(lines[0]);
+  return lines.slice(1).map((line, i) => {
+    const vals = csvLine(line);
+    const obj = { no: i + 1 };
     headers.forEach((h, idx) => {
-      obj[h.trim().toLowerCase().replace(/\s+/g,'_')] = vals[idx]?.trim() || '';
+      const key = h.trim().toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+      obj[key] = vals[idx]?.trim() || '';
     });
-    obj.project_id = 1; // default; override via sheet structure
-    obj._raw = vals;
-    rows.push(obj);
-  }
-  return rows;
-}
-
-function parseCSVLine(line) {
-  const result = [];
-  let current = '';
-  let inQuotes = false;
-  for (let c of line) {
-    if (c === '"') { inQuotes = !inQuotes; }
-    else if (c === ',' && !inQuotes) { result.push(current); current = ''; }
-    else { current += c; }
-  }
-  result.push(current);
-  return result;
-}
-
-// =====================
-// DEMO DATA (fallback)
-// =====================
-function loadDemoData() {
-  const materials = [
-    'Bak Cat','Cat Tembok warna Putih','Cutter & Isi','Elbow 45° PVC Class D',
-    'Elbow 90° PP-R Size 20mm','Elbow 90° PP-R Size 25mm','Elbow 90° PP-R Size 32mm',
-    'Equal Tee PP-R Size 20mm','Fitting Lampu Tempel','Hangar Clamp',
-    'Isolasi Listrik','Kabel NYM','Kanal CNP','Kaus 2" Eterna',
-    'Pipa PVC AW 10kg','Reducer Female PP-R','Bolt & Nut Galvanize',
-    'CAP PVC Class AW','BLIND FLANGE FF CS','CHECK-V FL CI',
-  ];
-
-  const suppliers = [
-    'SINAR KALTIM MAKASSAR','RAGAM BAJA SUKSES MANDIRI, PT','LANCAR JAYA SUKSES',
-    'CAHAYA GUNUNG LOGAM, PT','PANATA BAYU NUGRAHA, PT','ASEAN PANEL','BINA ARTHA JAYA',
-  ];
-
-  const statuses = ['OPEN','OPEN','CLOSED','CLOSED','CLOSED','ERROR','OPEN'];
-  data.rakap = [];
-
-  PROJECTS.forEach((proj, pi) => {
-    materials.forEach((mat, mi) => {
-      const pm = Math.floor(Math.random() * 50) + 5;
-      const po = pm;
-      const sj = Math.floor(pm * (0.5 + Math.random() * 0.5));
-      const sisa = po - sj;
-      const s = statuses[(mi + pi) % statuses.length];
-      data.rakap.push({
-        project_id: proj.id,
-        project_name: proj.name,
-        no: mi + 1,
-        nama_material: mat,
-        supplier: suppliers[mi % suppliers.length],
-        total_pm: pm,
-        total_po: po,
-        total_sj: sj,
-        sisa_belum_dikirim: sisa,
-        status: s,
-      });
-    });
+    obj.nama_material = obj.nama_material || obj.item_material || obj.material || obj.nama || '';
+    obj.status = (obj.status||'').toUpperCase()
+      .replace('CLOSED (✓)','CLOSED').replace('CLOSED(✓)','CLOSED').trim();
+    return obj;
   });
-
-  data.supplier = [
-    { project_id:1, no:1, supplier:'ASEAN PANEL', id_po:'PO-046', item_material:'MCB 16A, Reli Mcb, Box Panel 25x30', cash_out:333000 },
-    { project_id:1, no:2, supplier:'ASIALING PIPA INDONESIA, PT', id_po:'PO-062, PO-065, PO-071', item_material:'Reducer Female PP-R, Elbow 90° PP-R, Coupler PP-R', cash_out:76126258 },
-    { project_id:1, no:3, supplier:'BERLIAN SENTOSA MANDIRI, PT', id_po:'PO-154', item_material:'Vlock Tee Black Steel Screw 2"x1"', cash_out:2652012 },
-    { project_id:1, no:4, supplier:'BINA ARTHA JAYA', id_po:'PO-161', item_material:'Test Pump Electric, Test Pump Manual', cash_out:15200000 },
-    { project_id:2, no:1, supplier:'CAHAYA GUNUNG LOGAM, PT', id_po:'PO-032', item_material:'CAP PVC Class AW Size 3", 4", 6"', cash_out:8500000 },
-    { project_id:2, no:2, supplier:'LANCAR JAYA SUKSES', id_po:'PO-041', item_material:'Bolt & Nut Galvanize 3/4x3, 5/8x3', cash_out:12300000 },
-  ];
 }
 
-// =====================
-// RENDER ALL
-// =====================
+function csvLine(line) {
+  const r=[]; let cur=''; let q=false;
+  for (const c of line) {
+    if (c==='"') { q=!q; }
+    else if (c===',' && !q) { r.push(cur); cur=''; }
+    else { cur+=c; }
+  }
+  r.push(cur); return r;
+}
+
+// ── RENDER ALL ───────────────────────────────────────
 function renderAll() {
   renderSidebar();
   renderOverview();
-  renderMaterialTable(null);
-  renderSupplierTable(null);
-  populateProjectFilters();
+  applyFilters();
+  applySupplierFilters();
+  populateFilters();
 }
 
-// =====================
-// VIEWS
-// =====================
-function showView(view) {
-  ['setup','overview','material','supplier'].forEach(v => {
-    document.getElementById('view' + v.charAt(0).toUpperCase() + v.slice(1)).classList.add('hidden');
+// ── VIEWS ────────────────────────────────────────────
+function showView(v) {
+  ['empty','overview','material','supplier'].forEach(x => {
+    document.getElementById('view'+x.charAt(0).toUpperCase()+x.slice(1)).classList.add('hidden');
   });
-  document.getElementById('view' + view.charAt(0).toUpperCase() + view.slice(1)).classList.remove('hidden');
+  document.getElementById('view'+v.charAt(0).toUpperCase()+v.slice(1)).classList.remove('hidden');
+  ['overview','material','supplier'].forEach(x => {
+    document.getElementById('nav-'+x)?.classList.remove('active');
+  });
+  document.getElementById('nav-'+v)?.classList.add('active');
+  activeView = v;
+}
 
-  ['nav-overview','nav-material','nav-supplier'].forEach(id => {
-    document.getElementById(id)?.classList.remove('active');
-  });
-  if (document.getElementById('nav-' + view)) {
-    document.getElementById('nav-' + view).classList.add('active');
+function drillDown(pid) {
+  activeProjectId = pid;
+  document.querySelectorAll('.pitem').forEach(el => el.classList.remove('active'));
+  const idx = PROJECTS.findIndex(p => p.id === pid);
+  document.querySelectorAll('.pitem')[idx]?.classList.add('active');
+  const p = PROJECTS.find(x => x.id === pid);
+  document.getElementById('materialTitle').textContent = p?.name || 'Material';
+  document.getElementById('materialSub').textContent = p?.location || 'PM → PO → SJ';
+  if (p?.urlSheets) {
+    document.getElementById('editMaterialLink').href = p.urlSheets;
+    document.getElementById('editSupplierLink').href = p.urlSheets;
   }
-
-  activeView = view;
-
-  if (view === 'overview') renderOverview();
-  if (view === 'material') renderMaterialTable(activeProjectId);
-  if (view === 'supplier') renderSupplierTable(activeProjectId);
-}
-
-function drillDown(projectId) {
-  activeProjectId = projectId;
-  // Update sidebar active
-  document.querySelectorAll('.project-item').forEach((el, idx) => {
-    el.classList.toggle('active', idx === projectId - 1);
-  });
+  document.getElementById('filterProject').value = pid;
   showView('material');
-  const proj = PROJECTS.find(p => p.id === projectId);
-  document.getElementById('materialTitle').textContent = proj ? proj.name : 'Material';
-  document.getElementById('materialSub').textContent = 'Rekapitulasi PM → PO → SJ';
-  document.getElementById('filterProject').value = projectId;
-  renderMaterialTable(projectId);
+  applyFilters();
 }
 
-// =====================
-// OVERVIEW
-// =====================
+// ── OVERVIEW ─────────────────────────────────────────
 function renderOverview() {
-  let totalOpen = 0, totalClosed = 0, totalError = 0;
-  if (data.rakap.length === 0) loadDemoData();
-
-  PROJECTS.forEach(p => {
-    const s = getProjectStats(p.id);
-    totalOpen += s.open;
-    totalClosed += s.closed;
-    totalError += s.error;
-  });
-
+  let tO=0,tC=0,tE=0;
+  PROJECTS.forEach(p => { const s=stats(p.id); tO+=s.open; tC+=s.closed; tE+=s.error; });
   document.getElementById('kpi-proyek').textContent = PROJECTS.length;
-  document.getElementById('kpi-open').textContent = totalOpen;
-  document.getElementById('kpi-closed').textContent = totalClosed;
-  document.getElementById('kpi-error').textContent = totalError;
+  document.getElementById('kpi-open').textContent   = tO;
+  document.getElementById('kpi-closed').textContent = tC;
+  document.getElementById('kpi-error').textContent  = tE;
   document.getElementById('overviewSub').textContent =
-    `${totalOpen + totalClosed + totalError} total item material di ${PROJECTS.length} proyek aktif`;
-
-  const alertBar = document.getElementById('alertBar');
-  if (totalError > 0) {
-    alertBar.style.display = 'flex';
-    document.getElementById('alertText').textContent =
-      `${totalError} item berstatus ERROR membutuhkan tindakan segera`;
-  } else {
-    alertBar.style.display = 'none';
-  }
+    `${tO+tC+tE} total item di ${PROJECTS.length} proyek aktif`;
+  const ab = document.getElementById('alertBar');
+  if (tE > 0) {
+    ab.classList.remove('hidden');
+    document.getElementById('alertText').textContent = `${tE} item ERROR — perlu tindakan segera`;
+  } else { ab.classList.add('hidden'); }
 
   const grid = document.getElementById('projectsGrid');
   grid.innerHTML = '';
-
-  PROJECTS.forEach(p => {
-    const s = getProjectStats(p.id);
-    const total = s.open + s.closed + s.error;
-    const pct = total > 0 ? Math.round((s.closed / total) * 100) : 0;
-
-    const card = document.createElement('div');
-    card.className = 'proj-card' + (activeProjectId === p.id ? ' active' : '');
-    card.onclick = () => drillDown(p.id);
-    card.innerHTML = `
-      <div class="proj-card-num">PROYEK ${p.id}</div>
-      <div class="proj-card-name">${p.name}</div>
-      <div class="proj-stats">
-        <div class="proj-stat open">
-          <div class="proj-stat-num">${s.open}</div>
-          <div class="proj-stat-label">Open</div>
-        </div>
-        <div class="proj-stat closed">
-          <div class="proj-stat-num">${s.closed}</div>
-          <div class="proj-stat-label">Done</div>
-        </div>
-        ${s.error > 0 ? `<div class="proj-stat error">
-          <div class="proj-stat-num">${s.error}</div>
-          <div class="proj-stat-label">Error</div>
-        </div>` : ''}
-      </div>
-      <div class="proj-progress">
-        <div class="proj-progress-fill" style="width:${pct}%"></div>
-      </div>
-      <div style="margin-top:6px;font-size:10px;color:var(--text-muted)">${pct}% selesai</div>
-    `;
-    grid.appendChild(card);
-  });
-}
-
-// =====================
-// MATERIAL TABLE
-// =====================
-function renderMaterialTable(projectId) {
-  if (data.rakap.length === 0) loadDemoData();
-
-  let rows = data.rakap;
-  if (projectId) rows = rows.filter(r => r.project_id === projectId);
-
-  const tbody = document.getElementById('materialBody');
-  tbody.innerHTML = '';
-
-  if (rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:32px">Tidak ada data</td></tr>';
+  if (PROJECTS.length === 0) {
+    grid.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:16px;grid-column:1/-1">Belum ada proyek terdaftar.</div>';
     return;
   }
-
-  rows.forEach((row, idx) => {
-    const st = getStatus(row);
-    const stClass = st.includes('CLOSED') ? 'closed' : st === 'OPEN' ? 'open' : 'error';
-    const stLabel = st.includes('CLOSED') ? 'CLOSED ✓' : st;
-
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="muted">${row.no || idx+1}</td>
-      <td><strong>${row.nama_material || row.item_material || row._raw?.[1] || '—'}</strong></td>
-      <td class="muted" style="font-size:11px">${row.supplier || '—'}</td>
-      <td class="num">${row.total_pm || '—'}</td>
-      <td class="num">${row.total_po || '—'}</td>
-      <td class="num">${row.total_sj || '—'}</td>
-      <td class="num" style="color:${(row.sisa_belum_dikirim > 0) ? 'var(--amber)' : 'var(--text-muted)'}">${row.sisa_belum_dikirim ?? '—'}</td>
-      <td>
-        <div class="badge ${stClass}" onclick="openStatusModal(${row.project_id}, ${row.no || idx}, '${row.nama_material || ''}', '${st}')">
-          <div class="badge-dot"></div>
-          ${stLabel}
-        </div>
-      </td>
-    `;
-    tbody.appendChild(tr);
+  PROJECTS.forEach(p => {
+    const s = stats(p.id);
+    const total = s.open+s.closed+s.error;
+    const pct = total > 0 ? Math.round((s.closed/total)*100) : 0;
+    const c = document.createElement('div');
+    c.className = 'pcard'+(activeProjectId===p.id?' active':'');
+    c.onclick = () => drillDown(p.id);
+    c.innerHTML = `
+      <div class="pcard-loc">${p.location||'PROYEK'}</div>
+      <div class="pcard-name">${p.name}</div>
+      <div class="pstats">
+        <div class="pstat open"><div class="pstat-num">${s.open}</div><div class="pstat-label">Open</div></div>
+        <div class="pstat closed"><div class="pstat-num">${s.closed}</div><div class="pstat-label">Done</div></div>
+        ${s.error>0?`<div class="pstat error"><div class="pstat-num">${s.error}</div><div class="pstat-label">Err</div></div>`:''}
+      </div>
+      <div class="pprog"><div class="pprog-fill" style="width:${pct}%"></div></div>
+      <div style="margin-top:4px;font-size:9px;color:var(--text-muted)">${pct}% selesai · ${total} item</div>`;
+    grid.appendChild(c);
   });
 }
 
+// ── MATERIAL TABLE ───────────────────────────────────
 function applyFilters() {
   const status = document.getElementById('filterStatus').value;
-  const projId = parseInt(document.getElementById('filterProject').value) || null;
+  const projId = document.getElementById('filterProject').value;
   const search = document.getElementById('searchMaterial').value.toLowerCase();
-
-  if (data.rakap.length === 0) return;
-
   let rows = data.rakap;
-  if (projId) rows = rows.filter(r => r.project_id === projId);
+  if (projId) rows = rows.filter(r => String(r.project_id)===String(projId));
   if (status) rows = rows.filter(r => getStatus(r).includes(status));
   if (search) rows = rows.filter(r =>
-    (r.nama_material || r.item_material || '').toLowerCase().includes(search) ||
-    (r.supplier || '').toLowerCase().includes(search)
-  );
-
-  const tbody = document.getElementById('materialBody');
-  tbody.innerHTML = '';
-  if (rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:32px">Tidak ada hasil</td></tr>';
+    (r.nama_material||'').toLowerCase().includes(search)||
+    (r.supplier||'').toLowerCase().includes(search));
+  const tb = document.getElementById('materialBody');
+  tb.innerHTML = '';
+  if (!rows.length) {
+    tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:28px">Tidak ada data</td></tr>';
     return;
   }
-  rows.forEach((row, idx) => {
+  rows.forEach((row, i) => {
     const st = getStatus(row);
-    const stClass = st.includes('CLOSED') ? 'closed' : st === 'OPEN' ? 'open' : 'error';
-    const stLabel = st.includes('CLOSED') ? 'CLOSED ✓' : st;
+    const sc = st.includes('CLOSED')?'closed':st==='OPEN'?'open':st==='ERROR'?'error':'open';
+    const sl = st.includes('CLOSED')?'CLOSED ✓':st||'—';
+    const sisa = parseInt(row.sisa_belum_dikirim)||0;
     const tr = document.createElement('tr');
+    const safeName = (row.nama_material||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
     tr.innerHTML = `
-      <td class="muted">${row.no || idx+1}</td>
-      <td><strong>${row.nama_material || row.item_material || '—'}</strong></td>
-      <td class="muted" style="font-size:11px">${row.supplier || '—'}</td>
-      <td class="num">${row.total_pm || '—'}</td>
-      <td class="num">${row.total_po || '—'}</td>
-      <td class="num">${row.total_sj || '—'}</td>
-      <td class="num" style="color:${(row.sisa_belum_dikirim > 0) ? 'var(--amber)' : 'var(--text-muted)'}">${row.sisa_belum_dikirim ?? '—'}</td>
-      <td>
-        <div class="badge ${stClass}" onclick="openStatusModal(${row.project_id}, ${row.no || idx}, '${row.nama_material || ''}', '${st}')">
-          <div class="badge-dot"></div>
-          ${stLabel}
-        </div>
+      <td class="mu">${i+1}</td>
+      <td><strong>${row.nama_material||'—'}</strong>
+        ${!projId&&row.project_name?`<div style="font-size:9px;color:var(--text-dim);margin-top:1px">${row.project_name}</div>`:''}
       </td>
-    `;
-    tbody.appendChild(tr);
+      <td class="mu" style="font-size:10px">${row.supplier||'—'}</td>
+      <td class="nr">${row.total_pm||'—'}</td>
+      <td class="nr">${row.total_po||'—'}</td>
+      <td class="nr">${row.total_sj||'—'}</td>
+      <td class="nr" style="color:${sisa>0?'var(--amber)':'var(--text-muted)'}">${row.sisa_belum_dikirim||'—'}</td>
+      <td><div class="badge ${sc}" onclick="openStatusModal(${row.project_id},'${row.no}','${safeName}','${st}')">
+        <div class="bdot"></div>${sl}</div></td>`;
+    tb.appendChild(tr);
   });
 }
 
-// =====================
-// SUPPLIER TABLE
-// =====================
-function renderSupplierTable(projectId) {
-  if (data.supplier.length === 0) loadDemoData();
-
-  let rows = data.supplier;
-  if (projectId) rows = rows.filter(r => r.project_id === projectId);
-
-  const tbody = document.getElementById('supplierBody');
-  tbody.innerHTML = '';
-
-  if (rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px">Tidak ada data</td></tr>';
-    return;
-  }
-
-  let total = 0;
-  rows.forEach((row, idx) => {
-    const cashNum = typeof row.cash_out === 'number' ? row.cash_out :
-      parseInt((row.cash_out || '').replace(/[^0-9]/g, '')) || 0;
-    total += cashNum;
-
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="muted">${row.no || idx+1}</td>
-      <td><strong>${row.supplier || '—'}</strong></td>
-      <td><span class="tag-kecil">${row.id_po || '—'}</span></td>
-      <td style="font-size:11px;color:var(--text-muted);max-width:300px;line-height:1.6">${row.item_material || '—'}</td>
-      <td class="num cash-value big">${cashNum > 0 ? 'Rp' + cashNum.toLocaleString('id-ID') : row.cash_out || '—'}</td>
-      <td class="muted">${row.keterangan || ''}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  document.getElementById('totalCashOut').textContent =
-    total > 0 ? 'Rp' + total.toLocaleString('id-ID') : '—';
-  document.getElementById('totalCashOutSub').textContent =
-    `dari ${rows.length} supplier`;
-}
-
+// ── SUPPLIER TABLE ───────────────────────────────────
 function applySupplierFilters() {
-  const projId = parseInt(document.getElementById('filterSupplierProject').value) || null;
+  const projId = document.getElementById('filterSupplierProject').value;
   const search = document.getElementById('searchSupplier').value.toLowerCase();
-
   let rows = data.supplier;
-  if (projId) rows = rows.filter(r => r.project_id === projId);
+  if (projId) rows = rows.filter(r => String(r.project_id)===String(projId));
   if (search) rows = rows.filter(r =>
-    (r.supplier || '').toLowerCase().includes(search) ||
-    (r.item_material || '').toLowerCase().includes(search)
-  );
-
-  const tbody = document.getElementById('supplierBody');
-  tbody.innerHTML = '';
-
-  let total = 0;
-  rows.forEach((row, idx) => {
-    const cashNum = typeof row.cash_out === 'number' ? row.cash_out :
-      parseInt((row.cash_out || '').replace(/[^0-9]/g, '')) || 0;
-    total += cashNum;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="muted">${row.no || idx+1}</td>
-      <td><strong>${row.supplier || '—'}</strong></td>
-      <td><span class="tag-kecil">${row.id_po || '—'}</span></td>
-      <td style="font-size:11px;color:var(--text-muted);max-width:300px;line-height:1.6">${row.item_material || '—'}</td>
-      <td class="num cash-value big">${cashNum > 0 ? 'Rp' + cashNum.toLocaleString('id-ID') : row.cash_out || '—'}</td>
-      <td class="muted">${row.keterangan || ''}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  document.getElementById('totalCashOut').textContent =
-    total > 0 ? 'Rp' + total.toLocaleString('id-ID') : '—';
+    (r.supplier||'').toLowerCase().includes(search)||
+    (r.item_material||r.nama_material||'').toLowerCase().includes(search));
+  const tb = document.getElementById('supplierBody');
+  tb.innerHTML = ''; let total = 0;
+  if (!rows.length) {
+    tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:28px">Tidak ada data</td></tr>';
+  } else {
+    rows.forEach((row, i) => {
+      const cr = row.cash_out||row.cashout||row.cash||'';
+      const cn = parseInt(String(cr).replace(/[^0-9]/g,''))||0;
+      total += cn;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="mu">${i+1}</td>
+        <td><strong>${row.supplier||'—'}</strong>
+          ${!projId&&row.project_name?`<div style="font-size:9px;color:var(--text-dim);margin-top:1px">${row.project_name}</div>`:''}
+        </td>
+        <td><span class="tag-kecil">${row.id_po||row.idpo||'—'}</span></td>
+        <td style="font-size:10px;color:var(--text-muted);max-width:240px;line-height:1.6">${row.item_material||row.nama_material||'—'}</td>
+        <td class="nr cash-big">${cn>0?'Rp'+cn.toLocaleString('id-ID'):cr||'—'}</td>
+        <td class="mu">${row.keterangan||''}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+  document.getElementById('totalCashOut').textContent = total>0?'Rp'+total.toLocaleString('id-ID'):'—';
+  document.getElementById('totalCashOutSub').textContent = `dari ${rows.length} entri`;
 }
 
-// =====================
-// POPULATE FILTERS
-// =====================
-function populateProjectFilters() {
+// ── FILTERS POPULATE ─────────────────────────────────
+function populateFilters() {
   ['filterProject','filterSupplierProject'].forEach(id => {
     const sel = document.getElementById(id);
+    const cur = sel.value;
     sel.innerHTML = '<option value="">Semua Proyek</option>';
     PROJECTS.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.id;
-      opt.textContent = `${p.id}. ${p.name.substring(0, 35)}…`;
-      sel.appendChild(opt);
+      const o = document.createElement('option');
+      o.value = p.id; o.textContent = p.name.length>36?p.name.slice(0,36)+'…':p.name;
+      sel.appendChild(o);
     });
+    sel.value = cur;
   });
 }
 
-// =====================
-// STATUS MODAL
-// =====================
-function openStatusModal(projectId, itemNo, materialName, currentStatus) {
-  statusEditTarget = { projectId, itemNo, materialName };
-  document.getElementById('statusModalSub').textContent =
-    `Material: ${materialName} — Status saat ini: ${currentStatus}`;
+// ── SETUP MODAL ──────────────────────────────────────
+function openSetupModal() {
+  draftProjects = JSON.parse(JSON.stringify(PROJECTS));
+  if (draftProjects.length === 0) addProjectDraft();
+  renderSetupList();
+  document.getElementById('setupModal').classList.add('show');
+}
+
+function closeSetupModal() {
+  document.getElementById('setupModal').classList.remove('show');
+}
+
+function renderSetupList() {
+  const list = document.getElementById('projSetupList');
+  list.innerHTML = '';
+  draftProjects.forEach((p, i) => {
+    const hasUrl = p.urlRakap || p.urlSupplier;
+    const row = document.createElement('div');
+    row.className = 'psetup-row';
+    row.innerHTML = `
+      <div class="psetup-hd" onclick="toggleRow(${i})">
+        <div>
+          <div class="psetup-name">${p.name||'(Proyek baru)'}</div>
+          <div class="psetup-meta">${p.location||'Belum ada lokasi'}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;">
+          <span class="psetup-stat ${hasUrl?'ok':'empty'}">${hasUrl?'✓ Terhubung':'Belum ada URL'}</span>
+          <span style="color:var(--text-muted)">▾</span>
+        </div>
+      </div>
+      <div class="psetup-body" id="pbody-${i}">
+        <label class="mlabel">Nama Proyek *</label>
+        <input class="minput" placeholder="Sekolah Rakyat Kab. Barru" value="${p.name||''}"
+          oninput="draftProjects[${i}].name=this.value;refreshRow(${i})">
+
+        <label class="mlabel">Lokasi / Label</label>
+        <input class="minput" placeholder="Kab. Barru, Sulsel" value="${p.location||''}"
+          oninput="draftProjects[${i}].location=this.value;refreshRow(${i})">
+
+        <label class="mlabel">URL CSV — Sheet RAKAP_PM_PO_SJ</label>
+        <input class="minput" type="url" placeholder="https://docs.google.com/…&output=csv" value="${p.urlRakap||''}"
+          oninput="draftProjects[${i}].urlRakap=this.value">
+
+        <label class="mlabel">URL CSV — Sheet REKAP_SUPPLIER</label>
+        <input class="minput" type="url" placeholder="https://docs.google.com/…&output=csv" value="${p.urlSupplier||''}"
+          oninput="draftProjects[${i}].urlSupplier=this.value">
+
+        <label class="mlabel">URL Google Sheets (untuk tombol Buka Sheets)</label>
+        <input class="minput" type="url" placeholder="https://docs.google.com/spreadsheets/d/…/edit" value="${p.urlSheets||''}"
+          oninput="draftProjects[${i}].urlSheets=this.value">
+
+        <button class="btn btn-danger" onclick="removeProject(${i})">Hapus proyek ini</button>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+
+function toggleRow(i) {
+  document.getElementById('pbody-'+i)?.classList.toggle('open');
+}
+
+function refreshRow(i) {
+  // Update just the header text without re-rendering entire list
+  const rows = document.querySelectorAll('.psetup-row');
+  if (rows[i]) {
+    rows[i].querySelector('.psetup-name').textContent = draftProjects[i].name || '(Proyek baru)';
+    rows[i].querySelector('.psetup-meta').textContent = draftProjects[i].location || 'Belum ada lokasi';
+  }
+}
+
+function addProjectDraft() {
+  draftProjects.push({ id: Date.now(), name:'', location:'', urlRakap:'', urlSupplier:'', urlSheets:'' });
+  renderSetupList();
+  const idx = draftProjects.length - 1;
+  document.getElementById('pbody-'+idx)?.classList.add('open');
+}
+
+function removeProject(i) {
+  draftProjects.splice(i, 1);
+  renderSetupList();
+}
+
+function saveAllProjects() {
+  PROJECTS = draftProjects.filter(p => p.name.trim());
+  localStorage.setItem('panata_projects', JSON.stringify(PROJECTS));
+  closeSetupModal();
+  renderSidebar();
+  populateFilters();
+  if (PROJECTS.length === 0) { showView('empty'); return; }
+  showToast(`${PROJECTS.length} proyek disimpan`);
+  fetchAllData().then(() => showView('overview'));
+}
+
+// ── STATUS MODAL ─────────────────────────────────────
+function openStatusModal(pid, no, name, cur) {
+  statusEditTarget = { pid, no, name };
+  document.getElementById('statusModalSub').textContent = `${name} — saat ini: ${cur||'—'}`;
   document.getElementById('statusModal').classList.add('show');
 }
 
@@ -1675,35 +774,25 @@ function closeStatusModal() {
 
 function confirmStatus(newStatus) {
   if (!statusEditTarget) return;
-  const key = `${statusEditTarget.projectId}_${statusEditTarget.itemNo}`;
+  const key = `${statusEditTarget.pid}_${statusEditTarget.no}`;
   localOverrides[key] = newStatus;
   localStorage.setItem('panata_overrides', JSON.stringify(localOverrides));
   closeStatusModal();
-  showToast(`Status "${statusEditTarget.materialName}" → ${newStatus}`);
-  renderSidebar();
-  applyFilters();
-  renderOverview();
+  showToast(`${statusEditTarget.name} → ${newStatus}`);
+  renderSidebar(); applyFilters(); renderOverview();
 }
 
-// =====================
-// TOAST
-// =====================
-function showToast(msg) {
+// ── TOAST ────────────────────────────────────────────
+function showToast(msg, isErr) {
   const t = document.getElementById('toast');
-  t.textContent = '✓ ' + msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
+  t.textContent = (isErr?'✕ ':'✓ ') + msg;
+  t.className = 'toast show'+(isErr?' err':'');
+  setTimeout(()=>{t.className='toast';}, 3000);
 }
 
-// =====================
-// BOOT
-// =====================
+// ── BOOT ─────────────────────────────────────────────
 init();
-
-// Auto-refresh every 5 minutes
-setInterval(() => {
-  if (config.urlRakap || config.urlSupplier) fetchAllData();
-}, 5 * 60 * 1000);
+setInterval(()=>{ if(PROJECTS.length>0) fetchAllData(); }, 5*60*1000);
 </script>
 </body>
 </html>
