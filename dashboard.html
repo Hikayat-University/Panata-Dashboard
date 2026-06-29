@@ -941,7 +941,8 @@ function normalizeKey(raw, sheetType) {
   if (/^status$/.test(h) && sheetType === 'rakap_b') return 'status_material';
 
   // REPORT columns
-  if (/pm.*qc|pm\+qc/.test(h)) return 'pm_qc';
+  if (/pm.*qc|pm\+qc|pm\s*[>]\s*qc|^pm$/.test(h)) return 'pm_qc';
+  if (/^volume$/.test(h)) return 'pm_qc'; // kolom VOLUME tunggal = PM total
   if (/^onsite$/.test(h)) return 'onsite';
   if (/^deviasi$/.test(h)) return 'deviasi';
   if (/bon.mat/.test(h)) return 'bon_material';
