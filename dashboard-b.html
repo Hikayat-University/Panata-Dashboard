@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panata — Dashboard Format B</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,200;0,9..144,300;1,9..144,200&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #070F1C;
+    --surface: #0D1929;
+    --surface2:#111E33;
+    --surface3:#162240;
+    --border:  #18284A;
+    --border2: #1E3050;
+
+    --teal:    #00C2B3;
+    --teal-dim:rgba(0,194,179,0.10);
+    --blue:    #7B96C8;
+    --blue-dim:rgba(123,150,200,0.12);
+    --amber:   #F5A623;
+    --amber-dim:rgba(245,166,35,0.11);
+    --red:     #FF4D6A;
+    --red-dim: rgba(255,77,106,0.11);
+    --green:   #36D399;
+    --green-dim:rgba(54,211,153,0.11);
+
+    --text:      #DCE8F5;
+    --text-muted:#5A7494;
+    --text-dim:  #2E4060;
+
+    --font-display:'Fraunces', serif;
+    --font-body:   'Inter', sans-serif;
+  }
+
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:var(--font-body); background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 24px; height:52px;
+    background:rgba(7,15,28,0.92); border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:100; backdrop-filter:blur(12px);
+  }
+  .brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
+  .logo-wrap { height:24px; display:flex; align-items:center; }
+  .logo-wrap img { height:24px; width:auto; display:block; }
+  .logo-fallback { width:24px; height:24px; position:relative; flex-shrink:0; }
+  .logo-fallback::before { content:''; position:absolute; left:0; top:0; width:7px; height:24px; background:var(--teal); border-radius:2px; }
+  .logo-fallback::after  { content:''; position:absolute; left:7px; top:0; width:17px; height:13px; background:var(--teal); border-radius:0 5px 5px 0; clip-path:polygon(0 0,100% 0,100% 55%,55% 100%,0 100%); }
+  .brand-name { font-size:13px; font-weight:600; color:var(--text); }
+  .brand-sub  { font-size:9px; color:var(--text-muted); margin-top:1px; }
+  .topbar-right { display:flex; align-items:center; gap:8px; }
+  .sync-status { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--text-muted); }
+  .sync-dot { width:5px; height:5px; border-radius:50%; background:var(--green); box-shadow:0 0 5px var(--green); animation:pgr 2s infinite; }
+  .sync-dot.dim { background:var(--text-dim); box-shadow:none; animation:none; }
+  .sync-dot.err { background:var(--red); box-shadow:0 0 4px var(--red); animation:none; }
+  @keyframes pgr { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+  .date-badge { font-size:10px; color:var(--text-muted); background:var(--surface2); border:1px solid var(--border); padding:3px 8px; border-radius:3px; }
+  .btn-top { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border:1px solid var(--border2); border-radius:3px; background:transparent; color:var(--text-muted); font-family:var(--font-body); font-size:11px; font-weight:500; cursor:pointer; text-decoration:none; transition:all .16s; }
+  .btn-top:hover { border-color:var(--teal); color:var(--teal); }
+  .btn-top.teal { border-color:var(--teal); color:var(--teal); background:var(--teal-dim); }
+  .btn-top.teal:hover { background:var(--teal); color:var(--bg); }
+
+  /* ── LAYOUT ── */
+  .main { display:flex; flex:1; }
+
+  /* ── SIDEBAR ── */
+  .sidebar { width:216px; min-width:216px; background:var(--surface); border-right:1px solid var(--border); padding:20px 0; display:flex; flex-direction:column; overflow-y:auto; }
+  .sidebar-label { font-size:8px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-dim); padding:0 14px; margin-bottom:6px; }
+  .pitem { padding:8px 14px; cursor:pointer; transition:all .13s; border-left:2px solid transparent; display:flex; flex-direction:column; gap:2px; }
+  .pitem:hover { background:var(--surface2); }
+  .pitem.active { border-left-color:var(--blue); background:var(--blue-dim); }
+  .pitem-name { font-size:11px; font-weight:500; color:var(--text); line-height:1.35; }
+  .pitem.active .pitem-name { color:var(--blue); }
+  .pitem-meta { font-size:9px; color:var(--text-muted); }
+  .sidebar-sep { height:1px; background:var(--border); margin:12px 14px; }
+  .sidebar-all { padding:8px 14px; cursor:pointer; font-size:11px; color:var(--text-muted); transition:all .13s; border-left:2px solid transparent; }
+  .sidebar-all:hover { color:var(--text); background:var(--surface2); }
+  .sidebar-all.active { color:var(--blue); border-left-color:var(--blue); background:var(--blue-dim); }
+
+  /* ── CONTENT ── */
+  .content { flex:1; overflow-y:auto; padding:24px; display:flex; flex-direction:column; gap:20px; }
+  .page-header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .page-title { font-family:var(--font-display); font-size:26px; font-weight:300; letter-spacing:-.5px; line-height:1.1; }
+  .page-title em { font-style:italic; color:var(--blue); }
+  .page-sub { font-size:11px; color:var(--text-muted); margin-top:5px; }
+  .hactions { display:flex; gap:8px; align-items:center; }
+
+  /* ── FORMAT B BADGE ── */
+  .fmt-badge {
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:9px; font-weight:600; letter-spacing:.8px;
+    padding:3px 9px; border-radius:2px;
+    background:var(--blue-dim); color:var(--blue);
+    border:1px solid rgba(123,150,200,0.25);
+    text-transform:uppercase;
+  }
+
+  /* ── KPI CARDS ── */
+  .cards-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:3px; padding:16px; display:flex; flex-direction:column; gap:7px; position:relative; overflow:hidden; }
+  .card::after { content:''; position:absolute; left:0; top:0; bottom:0; width:2px; }
+  .card.green::after  { background:var(--green); }
+  .card.blue::after   { background:var(--blue); }
+  .card.amber::after  { background:var(--amber); }
+  .card.red::after    { background:var(--red); }
+  .card-label { font-size:9px; font-weight:600; letter-spacing:.8px; color:var(--text-muted); text-transform:uppercase; }
+  .card-value { font-family:var(--font-display); font-size:32px; font-weight:200; letter-spacing:-1.5px; line-height:1; }
+  .card.green .card-value  { color:var(--green); }
+  .card.blue .card-value   { color:var(--blue); }
+  .card.amber .card-value  { color:var(--amber); }
+  .card.red .card-value    { color:var(--red); }
+  .card-detail { font-size:10px; color:var(--text-muted); }
+
+  /* ── FILTERS ── */
+  .frow { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .fsel { background:var(--surface); border:1px solid var(--border2); color:var(--text); font-family:var(--font-body); font-size:11px; padding:6px 10px; border-radius:3px; outline:none; cursor:pointer; transition:border-color .15s; }
+  .fsel:focus { border-color:var(--blue); }
+  .fsrch { flex:1; max-width:220px; background:var(--surface); border:1px solid var(--border2); color:var(--text); font-family:var(--font-body); font-size:11px; padding:6px 10px; border-radius:3px; outline:none; transition:border-color .15s; }
+  .fsrch:focus { border-color:var(--blue); }
+  .fsrch::placeholder { color:var(--text-dim); }
+
+  /* ── TABLE ── */
+  .twrap { background:var(--surface); border:1px solid var(--border); border-radius:3px; overflow:hidden; }
+  .tscroll { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:11px; }
+  thead { background:var(--surface3); border-bottom:1px solid var(--border2); }
+  th { padding:9px 11px; text-align:left; font-size:8px; font-weight:600; letter-spacing:.9px; text-transform:uppercase; color:var(--text-dim); white-space:nowrap; }
+  td { padding:8px 11px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:middle; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:var(--surface2); }
+  td.mu { color:var(--text-muted); font-size:10px; }
+  td.nr, th.nr { font-variant-numeric:tabular-nums; text-align:right; }
+  td.bold { font-weight:600; }
+
+  /* ── STATUS BADGES ── */
+  .badge {
+    display:inline-flex; align-items:center; gap:4px;
+    padding:2px 7px; border-radius:2px;
+    font-size:9px; font-weight:600; letter-spacing:.3px;
+    white-space:nowrap; border:1px solid transparent;
+  }
+  .bdot { width:4px; height:4px; border-radius:50%; flex-shrink:0; }
+
+  /* Selesai */
+  .badge.selesai { background:var(--green-dim); color:var(--green); border-color:rgba(54,211,153,.25); }
+  .badge.selesai .bdot { background:var(--green); }
+  /* On Track */
+  .badge.ontrack { background:var(--blue-dim); color:var(--blue); border-color:rgba(123,150,200,.25); }
+  .badge.ontrack .bdot { background:var(--blue); animation:pbl 2.5s infinite; }
+  @keyframes pbl { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+  /* Deviasi */
+  .badge.deviasi { background:var(--amber-dim); color:var(--amber); border-color:rgba(245,166,35,.25); }
+  .badge.deviasi .bdot { background:var(--amber); animation:pam 2s infinite; }
+  @keyframes pam { 0%,100%{box-shadow:0 0 0 0 rgba(245,166,35,.4);} 50%{box-shadow:0 0 0 3px rgba(245,166,35,0);} }
+  /* Kritis */
+  .badge.kritis { background:var(--red-dim); color:var(--red); border-color:rgba(255,77,106,.25); }
+  .badge.kritis .bdot { background:var(--red); animation:prd 1.5s infinite; }
+  @keyframes prd { 0%,100%{box-shadow:0 0 0 0 rgba(255,77,106,.4);} 50%{box-shadow:0 0 0 3px rgba(255,77,106,0);} }
+
+  /* ── DURASI CHIP ── */
+  .durasi { font-size:9px; font-weight:600; padding:2px 6px; border-radius:2px; white-space:nowrap; }
+  .durasi.ok   { background:var(--green-dim); color:var(--green); }
+  .durasi.warn { background:var(--amber-dim); color:var(--amber); }
+  .durasi.over { background:var(--red-dim); color:var(--red); }
+
+  /* ── ID TAGS ── */
+  .id-tag { font-size:9px; color:var(--text-muted); background:var(--surface3); padding:1px 5px; border-radius:2px; border:1px solid var(--border); font-variant-numeric:tabular-nums; }
+  .id-chain { display:flex; align-items:center; gap:3px; flex-wrap:wrap; }
+  .id-arrow { color:var(--text-dim); font-size:9px; }
+
+  /* ── DEV VALUE ── */
+  .dev-pos { color:var(--amber); font-weight:600; }
+  .dev-neg { color:var(--red); font-weight:600; }
+  .dev-zero { color:var(--text-dim); }
+
+  /* ── EMPTY / SETUP ── */
+  .estate { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:50vh; gap:16px; text-align:center; }
+  .estate-icon { width:52px; height:52px; border-radius:3px; background:var(--blue-dim); border:1px solid rgba(123,150,200,.3); display:flex; align-items:center; justify-content:center; font-size:22px; }
+
+  /* ── MODAL ── */
+  .overlay { display:none; position:fixed; inset:0; background:rgba(4,8,16,.9); z-index:200; align-items:center; justify-content:center; backdrop-filter:blur(8px); }
+  .overlay.show { display:flex; }
+  .modal { background:var(--surface); border:1px solid var(--border2); border-radius:4px; padding:24px; width:580px; max-width:96vw; max-height:88vh; overflow-y:auto; }
+  .modal-title { font-family:var(--font-display); font-size:20px; font-weight:300; margin-bottom:5px; }
+  .modal-sub { font-size:11px; color:var(--text-muted); margin-bottom:16px; line-height:1.65; }
+  .mlabel { font-size:10px; font-weight:600; color:var(--text-muted); margin-bottom:4px; display:block; letter-spacing:.3px; }
+  .minput { width:100%; background:var(--bg); border:1px solid var(--border2); border-radius:3px; color:var(--text); font-family:var(--font-body); font-size:11px; padding:8px 11px; outline:none; margin-bottom:9px; transition:border-color .16s; }
+  .minput:focus { border-color:var(--blue); }
+  .minput::placeholder { color:var(--text-dim); }
+  .mactions { display:flex; gap:7px; margin-top:16px; justify-content:flex-end; }
+  .btn { padding:7px 15px; border-radius:3px; font-family:var(--font-body); font-size:11px; font-weight:600; cursor:pointer; border:none; transition:all .16s; }
+  .btn-primary { background:var(--blue); color:var(--bg); }
+  .btn-primary:hover { filter:brightness(1.1); }
+  .btn-ghost { background:transparent; color:var(--text-muted); border:1px solid var(--border2); }
+  .btn-ghost:hover { color:var(--text); border-color:var(--text-muted); }
+  .btn-danger { background:transparent; color:var(--red); border:1px solid rgba(255,77,106,.3); }
+  .btn-danger:hover { background:var(--red-dim); }
+
+  /* ── SETUP ROWS ── */
+  .psetup-row { border:1px solid var(--border); border-radius:3px; margin-bottom:8px; overflow:hidden; }
+  .psetup-hd { display:flex; align-items:center; justify-content:space-between; padding:10px 13px; background:var(--surface2); cursor:pointer; }
+  .psetup-name { font-size:12px; font-weight:600; }
+  .psetup-meta { font-size:9px; color:var(--text-muted); margin-top:1px; }
+  .psetup-stat { font-size:9px; padding:2px 7px; border-radius:2px; font-weight:600; }
+  .psetup-stat.ok { background:var(--green-dim); color:var(--green); }
+  .psetup-stat.empty { background:var(--surface); color:var(--text-dim); border:1px solid var(--border); }
+  .psetup-body { padding:13px; display:none; border-top:1px solid var(--border); }
+  .psetup-body.open { display:block; }
+
+  .hidden { display:none !important; }
+  ::-webkit-scrollbar { width:3px; height:3px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+  .toast { position:fixed; bottom:20px; right:20px; background:var(--surface2); border:1px solid var(--green); border-left:2px solid var(--green); color:var(--green); padding:10px 15px; border-radius:3px; font-size:11px; font-weight:500; z-index:300; transform:translateY(60px); opacity:0; transition:all .26s; }
+  .toast.show { transform:translateY(0); opacity:1; }
+  .toast.err { border-color:var(--red); border-left-color:var(--red); color:var(--red); }
+
+  /* Alert bar */
+  .alert-bar { background:var(--red-dim); border:1px solid rgba(255,77,106,.25); border-left:2px solid var(--red); border-radius:3px; padding:10px 14px; display:flex; align-items:center; gap:8px; font-size:12px; color:var(--red); }
+  .adot { width:6px; height:6px; border-radius:50%; background:var(--red); animation:prd 1.5s infinite; flex-shrink:0; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <a href="index.html" class="brand">
+    <div class="logo-wrap">
+      <img src="logo.png" alt="Panata"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <div class="logo-fallback" style="display:none"></div>
+    </div>
+    <div>
+      <div class="brand-name">Panata Bayu Nugraha</div>
+      <div class="brand-sub">Dashboard — Format B · PM → PO → SJ</div>
+    </div>
+  </a>
+  <div class="topbar-right">
+    <div class="sync-status">
+      <div class="sync-dot dim" id="syncDot"></div>
+      <span id="syncLabel">Menginisialisasi…</span>
+    </div>
+    <div class="date-badge" id="dateBadge">—</div>
+    <a href="dashboard.html" class="btn-top">← Format A</a>
+    <a href="index.html" class="btn-top">← Beranda</a>
+    <button class="btn-top teal" onclick="openSetupModal()">⚙ Kelola Proyek</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-label">Proyek Format B</div>
+    <div class="sidebar-all active" id="navAll" onclick="filterByProject(null)">▦ Semua Proyek</div>
+    <div class="sidebar-sep"></div>
+    <div id="projectList"></div>
+    <div style="margin:10px 14px 0;padding:8px;border:1px dashed var(--border2);border-radius:3px;font-size:10px;color:var(--text-muted);cursor:pointer;text-align:center;transition:all .15s;" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='';this.style.color=''" onclick="openSetupModal()">+ Tambah Proyek</div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- EMPTY -->
+    <div id="viewEmpty" class="estate">
+      <div class="estate-icon">📋</div>
+      <div style="font-family:var(--font-display);font-size:22px;font-weight:300;">Belum ada proyek Format B</div>
+      <div style="font-size:12px;color:var(--text-muted);max-width:340px;line-height:1.7;">Tambahkan proyek dan hubungkan sheet RAKAP_PM_PO_SJ via URL CSV.</div>
+      <button class="btn btn-primary" onclick="openSetupModal()">Mulai Setup</button>
+    </div>
+
+    <!-- MAIN VIEW -->
+    <div id="viewMain" class="hidden">
+
+      <!-- PAGE HEADER -->
+      <div class="page-header">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+            <span class="fmt-badge">Format B</span>
+          </div>
+          <div class="page-title" id="pageTitle">Overview <em>Semua Proyek</em></div>
+          <div class="page-sub" id="pageSub">PM → PO → SJ · Tracking per permintaan material</div>
+        </div>
+        <div class="hactions">
+          <a href="#" id="sheetsLink" class="btn-top teal hidden" target="_blank">↗ Buka Sheets</a>
+          <button class="btn-top" onclick="fetchAllData()">↻ Refresh</button>
+        </div>
+      </div>
+
+      <!-- KPI CARDS -->
+      <div class="cards-row">
+        <div class="card green">
+          <div class="card-label">Selesai</div>
+          <div class="card-value" id="kpi-selesai">—</div>
+          <div class="card-detail">Material di proyek / SJ Closed</div>
+        </div>
+        <div class="card blue">
+          <div class="card-label">On Track</div>
+          <div class="card-value" id="kpi-ontrack">—</div>
+          <div class="card-detail">Kirim proyek ✓ / PO Closed</div>
+        </div>
+        <div class="card amber">
+          <div class="card-label">Deviasi</div>
+          <div class="card-value" id="kpi-deviasi">—</div>
+          <div class="card-detail">Lebih / kurang kirim</div>
+        </div>
+        <div class="card red">
+          <div class="card-label">Kritis</div>
+          <div class="card-value" id="kpi-kritis">—</div>
+          <div class="card-detail">Gagal kirim / belum ada PO</div>
+        </div>
+      </div>
+
+      <!-- ALERT -->
+      <div class="alert-bar hidden" id="alertBar">
+        <div class="adot"></div>
+        <span id="alertText"></span>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="frow">
+        <select class="fsel" id="filterKategori" onchange="applyFilters()">
+          <option value="">Semua Status</option>
+          <option value="selesai">✓ Selesai</option>
+          <option value="ontrack">→ On Track</option>
+          <option value="deviasi">⚠ Deviasi</option>
+          <option value="kritis">✗ Kritis</option>
+        </select>
+        <select class="fsel" id="filterSupplier" onchange="applyFilters()">
+          <option value="">Semua Supplier</option>
+        </select>
+        <select class="fsel" id="filterDurasi" onchange="applyFilters()">
+          <option value="">Semua Durasi</option>
+          <option value="over">Durasi > 7 hari</option>
+          <option value="warn">Durasi 4–7 hari</option>
+          <option value="ok">Durasi ≤ 3 hari</option>
+        </select>
+        <input class="fsrch" type="text" id="searchMaterial" placeholder="Cari material…" oninput="applyFilters()">
+      </div>
+
+      <!-- TABLE -->
+      <div class="twrap tscroll">
+        <table>
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Material</th>
+              <th>Supplier</th>
+              <th>PM → PO</th>
+              <th>Durasi</th>
+              <th class="nr">Vol PM</th>
+              <th class="nr">Vol PO</th>
+              <th class="nr">Vol SJ</th>
+              <th class="nr">Dev PM-PO</th>
+              <th class="nr">Dev PO-SJ</th>
+              <th>Status PM-PO</th>
+              <th>Status PO-SJ</th>
+              <th>Status Material</th>
+            </tr>
+          </thead>
+          <tbody id="mainBody">
+            <tr><td colspan="13" style="text-align:center;color:var(--text-muted);padding:28px">Menunggu data…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- TABEL FOOTER INFO -->
+      <div style="font-size:10px;color:var(--text-dim);text-align:right;" id="tableInfo"></div>
+
+    </div>
+  </div>
+</div>
+
+<!-- SETUP MODAL -->
+<div class="overlay" id="setupModal">
+  <div class="modal">
+    <div class="modal-title">⚙ Kelola Proyek Format B</div>
+    <div class="modal-sub">
+      Hubungkan sheet <strong>RAKAP_PM_PO_SJ</strong> tiap proyek via URL CSV.<br>
+      <strong>Cara:</strong> Buka Sheets → File → Share → Publish to web → pilih sheet → CSV → Publish → copy URL.
+    </div>
+    <div id="projSetupList"></div>
+    <button class="btn btn-ghost" style="width:100%;margin-top:4px;" onclick="addProjectDraft()">+ Tambah Proyek Baru</button>
+    <div class="mactions">
+      <button class="btn btn-ghost" onclick="closeSetupModal()">Tutup</button>
+      <button class="btn btn-primary" onclick="saveAllProjects()">Simpan & Muat Ulang</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// HIERARKI STATUS FORMAT B
+// Selesai  : material di proyek, sj closed
+// On Track : kirim proyek ✓, po closed
+// Deviasi  : kirim lebih, kirim kurang, po lebih, po kurang
+// Kritis   : kirim ✗, kosong/belum ada po
+// ═══════════════════════════════════════
+
+const STATUS_MAP = {
+  // SELESAI
+  'MATERIAL DI PROYEK':        'selesai',
+  'DI PROYEK':                 'selesai',
+  'SJ CLOSED':                 'selesai',
+  'SJ CLOSED (✓)':             'selesai',
+  'SI CLOSED':                 'selesai',
+  'SI CLOSED (✓)':             'selesai',
+  'MATERIAL KIRIM PROYEK':     'selesai',
+  'MATERIAL KIRIM PROYEK (✓)': 'selesai',
+  // ON TRACK
+  'KIRIM PROYEK':              'ontrack',
+  'KIRIM PROYEK (✓)':          'ontrack',
+  'MATERIAL DI WORKSHOP':      'ontrack',
+  'MATERIAL DI WORKSHOP (✓)':  'ontrack',
+  'PO CLOSED':                 'ontrack',
+  'PO CLOSED (✓)':             'ontrack',
+  'DI WORKSHOP':               'ontrack',
+};
+
+function classifyStatus(raw) {
+  if (!raw) return 'kritis';
+  const s = raw.trim().toUpperCase();
+
+  // Cek exact match dulu
+  if (STATUS_MAP[s]) return STATUS_MAP[s];
+
+  // Pattern matching
+  if (s.includes('DI PROYEK') || s.includes('SJ CLOSED') || s.includes('SI CLOSED') ||
+      (s.includes('KIRIM PROYEK') && s.includes('✓'))) return 'selesai';
+  if (s.includes('DI WORKSHOP') || s.includes('PO CLOSED') ||
+      (s.includes('KIRIM') && s.includes('✓'))) return 'ontrack';
+  if (/LEBIH|KURANG|LEBIH \d|KURANG \d|DI KIRIM LEBIH|KURANG KIRIM/.test(s)) return 'deviasi';
+  if (s.includes('(X)') || s.includes('✗') || s === '' || s === '-') return 'kritis';
+
+  // Kosong atau tidak dikenal = kritis
+  return 'kritis';
+}
+
+const BADGE_LABEL = {
+  selesai: 'Selesai',
+  ontrack: 'On Track',
+  deviasi: 'Deviasi',
+  kritis:  'Kritis',
+};
+
+// ── STATE ──────────────────────────────
+let PROJECTS = [];
+let data = { rakap: [] };
+let activeProjectId = null;
+let draftProjects = [];
+
+// ── INIT ───────────────────────────────
+function init() {
+  updateDate();
+  const sp = localStorage.getItem('panata_b_projects');
+  if (sp) PROJECTS = JSON.parse(sp);
+  renderSidebar();
+  if (PROJECTS.length === 0) {
+    document.getElementById('viewEmpty').classList.remove('hidden');
+    document.getElementById('viewMain').classList.add('hidden');
+    return;
+  }
+  fetchAllData().then(() => {
+    document.getElementById('viewEmpty').classList.add('hidden');
+    document.getElementById('viewMain').classList.remove('hidden');
+  });
+}
+
+function updateDate() {
+  document.getElementById('dateBadge').textContent =
+    new Date().toLocaleDateString('id-ID', {weekday:'short',day:'numeric',month:'short',year:'numeric'});
+}
+
+// ── SIDEBAR ────────────────────────────
+function renderSidebar() {
+  const list = document.getElementById('projectList');
+  list.innerHTML = '';
+  PROJECTS.forEach(p => {
+    const rows = data.rakap.filter(r => r.project_id === p.id);
+    const kritis = rows.filter(r => r._kategori === 'kritis').length;
+    const el = document.createElement('div');
+    el.className = 'pitem' + (activeProjectId === p.id ? ' active' : '');
+    el.onclick = () => filterByProject(p.id);
+    el.innerHTML = `
+      <div class="pitem-name">${p.name}</div>
+      <div class="pitem-meta">${p.location||''}</div>
+      ${kritis > 0 ? `<div style="margin-top:3px;"><span style="font-size:9px;background:var(--red-dim);color:var(--red);padding:1px 5px;border-radius:2px;font-weight:600;">${kritis} kritis</span></div>` : ''}`;
+    list.appendChild(el);
+  });
+}
+
+// ── FETCH ──────────────────────────────
+async function fetchAllData() {
+  const dot = document.getElementById('syncDot');
+  const lbl = document.getElementById('syncLabel');
+  dot.className = 'sync-dot dim'; lbl.textContent = 'Mengambil data…';
+  data.rakap = [];
+  let ok = 0;
+
+  await Promise.all(PROJECTS.map(async p => {
+    if (!p.urlRakap) return;
+    try {
+      const text = await (await fetch(p.urlRakap)).text();
+      const rows = parseFormatB(text);
+      rows.forEach(r => {
+        r.project_id   = p.id;
+        r.project_name = p.name;
+        r._kategori    = classifyStatus(r.status_material || r._raw_status || '');
+      });
+      data.rakap.push(...rows);
+      ok++;
+    } catch(e) { console.warn('Fetch fail', p.name, e); }
+  }));
+
+  if (ok > 0) {
+    dot.className = 'sync-dot';
+    lbl.textContent = `${ok}/${PROJECTS.length} proyek · ${new Date().toLocaleTimeString('id-ID')}`;
+  } else {
+    dot.className = 'sync-dot err';
+    lbl.textContent = 'Gagal — cek URL CSV';
+  }
+
+  populateSupplierFilter();
+  renderSidebar();
+  applyFilters();
+}
+
+// ── PARSER FORMAT B ────────────────────
+function parseFormatB(text) {
+  const lines = text.split('\n');
+  const parsed = lines.map(l => csvLine(l));
+
+  // Cari header: baris yang mengandung "Permintaan Material" atau "Purchasing Order"
+  // atau mengandung "ID_PM" dan "Nama Material"
+  let grpIdx = -1;
+  for (let i = 0; i < Math.min(parsed.length, 30); i++) {
+    const j = parsed[i].join(' ').toLowerCase();
+    if (j.includes('permintaan material') || j.includes('purchasing order') ||
+        (j.includes('id') && j.includes('pm') && j.includes('nama material'))) {
+      grpIdx = i; break;
+    }
+  }
+
+  // Fallback: cari baris dengan ID_PM dan Supplier
+  if (grpIdx === -1) {
+    for (let i = 0; i < Math.min(parsed.length, 30); i++) {
+      const j = parsed[i].join(' ').toLowerCase();
+      if (j.includes('id_pm') || j.includes('id pm')) { grpIdx = i; break; }
+    }
+  }
+
+  if (grpIdx === -1) return [];
+
+  // Sub-header ada di baris berikutnya (PM, PO, SJ, DEV, dll)
+  const subIdx = grpIdx + 1;
+  const grpRow = parsed[grpIdx] || [];
+  const subRow = parsed[subIdx] || [];
+
+  // Check apakah subRow benar-benar sub-header (mengandung PM, PO, SJ)
+  const subJoined = subRow.join(' ').toLowerCase();
+  const hasSubHeader = subJoined.includes(' pm') || subJoined.includes('sj') || subJoined.includes(' po');
+
+  let headers;
+  let dataStart;
+  if (hasSubHeader) {
+    let lastGrp = '';
+    headers = grpRow.map((h, idx) => {
+      const g = h.trim();
+      if (g) lastGrp = g;
+      const sub = subRow[idx]?.trim() || '';
+      return normKeyB(sub || lastGrp);
+    });
+    dataStart = subIdx + 1;
+  } else {
+    headers = grpRow.map(h => normKeyB(h));
+    dataStart = grpIdx + 1;
+  }
+
+  const rows = [];
+  let no = 1;
+  for (let i = dataStart; i < parsed.length; i++) {
+    const vals = parsed[i];
+    const nonEmpty = vals.filter(v => v.trim());
+    if (nonEmpty.length < 3) continue;
+    // Skip divider: cell pertama huruf tunggal
+    const firstNE = nonEmpty[0]?.trim() || '';
+    if (/^[A-Z]$/.test(firstNE) && nonEmpty.length <= 4) continue;
+
+    const obj = { no: no++ };
+    headers.forEach((key, idx) => {
+      if (key) obj[key] = vals[idx]?.trim() || '';
+    });
+
+    obj.nama_material = obj.nama_material || obj.item_material || obj.material || '';
+    obj.supplier      = obj.supplier || obj.nama_supplier || '';
+    obj._raw_status   = obj.status_material || obj.status || '';
+
+    if (!obj.nama_material) continue;
+    rows.push(obj);
+  }
+  return rows;
+}
+
+function normKeyB(raw) {
+  const h = (raw||'').trim().toLowerCase().replace(/[\r\n]+/g,' ').replace(/\s+/g,' ');
+  if (!h) return null;
+  if (/nama.material|item.material/.test(h)) return 'nama_material';
+  if (/^supplier$|nama.supplier/.test(h)) return 'supplier';
+  if (/^id.?pm$|permintaan.*id/.test(h)) return 'id_pm';
+  if (/tanggal.*pm|tgl.*pm/.test(h)) return 'tgl_pm';
+  if (/^id.?po$|purchasing.*id/.test(h)) return 'id_po';
+  if (/tanggal.*po|tgl.*po/.test(h)) return 'tgl_po';
+  if (/durasi/.test(h)) return 'durasi';
+  if (/^ *pm *$/.test(h) || h === 'pm') return 'vol_pm';
+  if (/^ *po *$/.test(h) || h === 'po') return 'vol_po';
+  if (/^ *sj *$/.test(h) || h === 'sj') return 'vol_sj';
+  if (/dev.*pm|pm.*po.*dev/.test(h)) return 'dev_pm_po';
+  if (/dev.*po|po.*sj.*dev/.test(h)) return 'dev_po_sj';
+  if (/status.*pm|pm.*po.*status/.test(h)) return 'status_pm_po';
+  if (/status.*po|po.*sj.*status/.test(h)) return 'status_po_sj';
+  if (/status.*mat|satuan.*mat/.test(h)) return 'status_material';
+  if (/^status$/.test(h)) return 'status_material';
+  if (/satuan/.test(h)) return 'satuan';
+  if (/keterangan/.test(h)) return 'keterangan';
+  return h.replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'') || null;
+}
+
+function csvLine(line) {
+  const r=[]; let cur=''; let q=false;
+  for (const c of line) {
+    if (c==='"') { q=!q; }
+    else if (c===',' && !q) { r.push(cur); cur=''; }
+    else { cur+=c; }
+  }
+  r.push(cur); return r;
+}
+
+// ── FILTER BY PROJECT ──────────────────
+function filterByProject(pid) {
+  activeProjectId = pid;
+
+  // Update sidebar active state
+  document.getElementById('navAll').classList.toggle('active', pid === null);
+  document.querySelectorAll('.pitem').forEach((el, idx) => {
+    el.classList.toggle('active', PROJECTS[idx]?.id === pid);
+  });
+
+  // Update page title
+  if (pid === null) {
+    document.getElementById('pageTitle').innerHTML = 'Overview <em>Semua Proyek</em>';
+    document.getElementById('pageSub').textContent = 'PM → PO → SJ · Tracking per permintaan material';
+    document.getElementById('sheetsLink').classList.add('hidden');
+  } else {
+    const p = PROJECTS.find(x => x.id === pid);
+    document.getElementById('pageTitle').innerHTML = `${p?.name || ''}`;
+    document.getElementById('pageSub').textContent = p?.location || 'PM → PO → SJ';
+    if (p?.urlSheets) {
+      document.getElementById('sheetsLink').href = p.urlSheets;
+      document.getElementById('sheetsLink').classList.remove('hidden');
+    }
+  }
+
+  applyFilters();
+}
+
+// ── APPLY FILTERS ──────────────────────
+function applyFilters() {
+  const kat    = document.getElementById('filterKategori').value;
+  const supp   = document.getElementById('filterSupplier').value;
+  const dur    = document.getElementById('filterDurasi').value;
+  const search = document.getElementById('searchMaterial').value.toLowerCase();
+
+  let rows = data.rakap;
+  if (activeProjectId) rows = rows.filter(r => r.project_id === activeProjectId);
+  if (kat)    rows = rows.filter(r => r._kategori === kat);
+  if (supp)   rows = rows.filter(r => (r.supplier||'').toLowerCase().includes(supp.toLowerCase()));
+  if (dur === 'over') rows = rows.filter(r => parseDurasi(r.durasi) > 7);
+  if (dur === 'warn') rows = rows.filter(r => { const d=parseDurasi(r.durasi); return d>=4&&d<=7; });
+  if (dur === 'ok')   rows = rows.filter(r => parseDurasi(r.durasi) <= 3 && parseDurasi(r.durasi) > 0);
+  if (search) rows = rows.filter(r =>
+    (r.nama_material||'').toLowerCase().includes(search) ||
+    (r.supplier||'').toLowerCase().includes(search));
+
+  // KPI
+  const all = activeProjectId
+    ? data.rakap.filter(r => r.project_id === activeProjectId)
+    : data.rakap;
+  document.getElementById('kpi-selesai').textContent = all.filter(r=>r._kategori==='selesai').length;
+  document.getElementById('kpi-ontrack').textContent = all.filter(r=>r._kategori==='ontrack').length;
+  document.getElementById('kpi-deviasi').textContent = all.filter(r=>r._kategori==='deviasi').length;
+  document.getElementById('kpi-kritis').textContent  = all.filter(r=>r._kategori==='kritis').length;
+
+  const kritis = all.filter(r=>r._kategori==='kritis').length;
+  const ab = document.getElementById('alertBar');
+  if (kritis > 0) {
+    ab.classList.remove('hidden');
+    document.getElementById('alertText').textContent = `${kritis} item berstatus Kritis — perlu tindakan segera`;
+  } else { ab.classList.add('hidden'); }
+
+  renderTable(rows);
+}
+
+function parseDurasi(val) {
+  if (!val) return 0;
+  const n = parseInt((val+'').replace(/[^0-9]/g,''));
+  return isNaN(n) ? 0 : n;
+}
+
+// ── RENDER TABLE ───────────────────────
+function renderTable(rows) {
+  const tb = document.getElementById('mainBody');
+  tb.innerHTML = '';
+
+  if (!rows.length) {
+    tb.innerHTML = `<tr><td colspan="13" style="text-align:center;color:var(--text-muted);padding:32px">
+      ${data.rakap.length === 0 ? 'Belum ada data — pastikan URL CSV sudah diisi di Kelola Proyek' : 'Tidak ada item untuk filter ini'}
+    </td></tr>`;
+    document.getElementById('tableInfo').textContent = '';
+    return;
+  }
+
+  document.getElementById('tableInfo').textContent = `${rows.length} item ditampilkan`;
+
+  rows.forEach((row, i) => {
+    const kat   = row._kategori || 'kritis';
+    const dur   = parseDurasi(row.durasi);
+    const durClass = dur > 7 ? 'over' : dur >= 4 ? 'warn' : dur > 0 ? 'ok' : '';
+    const devPmPo = parseFloat(row.dev_pm_po) || 0;
+    const devPoSj = parseFloat(row.dev_po_sj) || 0;
+    const rawSt = row._raw_status || row.status_material || '';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="mu">${i+1}</td>
+      <td>
+        <strong style="font-size:11px;">${row.nama_material||'—'}</strong>
+        ${!activeProjectId && row.project_name
+          ? `<div style="font-size:9px;color:var(--text-dim);margin-top:1px">${row.project_name}</div>`
+          : ''}
+      </td>
+      <td class="mu">${row.supplier||'—'}</td>
+      <td>
+        <div class="id-chain">
+          ${row.id_pm ? `<span class="id-tag">${row.id_pm}</span>` : ''}
+          ${row.id_pm && row.id_po ? `<span class="id-arrow">→</span>` : ''}
+          ${row.id_po ? `<span class="id-tag">${row.id_po}</span>` : ''}
+        </div>
+        ${row.tgl_pm ? `<div style="font-size:9px;color:var(--text-dim);margin-top:2px">${row.tgl_pm}${row.tgl_po ? ' → '+row.tgl_po : ''}</div>` : ''}
+      </td>
+      <td>
+        ${dur > 0
+          ? `<span class="durasi ${durClass}">${row.durasi}</span>`
+          : `<span style="color:var(--text-dim);font-size:9px">—</span>`}
+      </td>
+      <td class="nr">${row.vol_pm||'—'}</td>
+      <td class="nr">${row.vol_po||'—'}</td>
+      <td class="nr">${row.vol_sj||'—'}</td>
+      <td class="nr ${devPmPo < 0 ? 'dev-neg' : devPmPo > 0 ? 'dev-pos' : 'dev-zero'}">${row.dev_pm_po||'—'}</td>
+      <td class="nr ${devPoSj < 0 ? 'dev-neg' : devPoSj > 0 ? 'dev-pos' : 'dev-zero'}">${row.dev_po_sj||'—'}</td>
+      <td style="font-size:9px;color:var(--text-muted)">${row.status_pm_po||'—'}</td>
+      <td style="font-size:9px;color:var(--text-muted)">${row.status_po_sj||'—'}</td>
+      <td>
+        <div class="badge ${kat}">
+          <div class="bdot"></div>
+          ${rawSt || BADGE_LABEL[kat]}
+        </div>
+      </td>`;
+    tb.appendChild(tr);
+  });
+}
+
+// ── POPULATE SUPPLIER FILTER ───────────
+function populateSupplierFilter() {
+  const sel = document.getElementById('filterSupplier');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Semua Supplier</option>';
+  const suppliers = [...new Set(data.rakap.map(r => r.supplier).filter(Boolean))].sort();
+  suppliers.forEach(s => {
+    const o = document.createElement('option');
+    o.value = s; o.textContent = s.length > 40 ? s.slice(0,40)+'…' : s;
+    sel.appendChild(o);
+  });
+  sel.value = cur;
+}
+
+// ── SETUP MODAL ────────────────────────
+function openSetupModal() {
+  draftProjects = JSON.parse(JSON.stringify(PROJECTS));
+  if (draftProjects.length === 0) addProjectDraft();
+  renderSetupList();
+  document.getElementById('setupModal').classList.add('show');
+}
+
+function closeSetupModal() {
+  document.getElementById('setupModal').classList.remove('show');
+}
+
+function renderSetupList() {
+  const list = document.getElementById('projSetupList');
+  list.innerHTML = '';
+  draftProjects.forEach((p, i) => {
+    const hasUrl = !!p.urlRakap;
+    const row = document.createElement('div');
+    row.className = 'psetup-row';
+    row.innerHTML = `
+      <div class="psetup-hd" onclick="toggleRow(${i})">
+        <div>
+          <div class="psetup-name">${p.name||'(Proyek baru)'}</div>
+          <div class="psetup-meta">${p.location||'Belum ada lokasi'}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;">
+          <span class="psetup-stat ${hasUrl?'ok':'empty'}">${hasUrl?'✓ Terhubung':'Belum ada URL'}</span>
+          <span style="color:var(--text-muted)">▾</span>
+        </div>
+      </div>
+      <div class="psetup-body" id="pbody-${i}">
+        <label class="mlabel">Nama Proyek *</label>
+        <input class="minput" placeholder="Sekolah Rakyat Kab. OKI" value="${p.name||''}"
+          oninput="draftProjects[${i}].name=this.value;refreshRow(${i})">
+        <label class="mlabel">Lokasi / Label</label>
+        <input class="minput" placeholder="Kab. OKI, Sumsel" value="${p.location||''}"
+          oninput="draftProjects[${i}].location=this.value;refreshRow(${i})">
+        <label class="mlabel">URL CSV — Sheet RAKAP_PM_PO_SJ</label>
+        <input class="minput" type="url" placeholder="https://docs.google.com/…&output=csv" value="${p.urlRakap||''}"
+          oninput="draftProjects[${i}].urlRakap=this.value">
+        <label class="mlabel">URL Google Sheets (untuk tombol Buka Sheets)</label>
+        <input class="minput" type="url" placeholder="https://docs.google.com/spreadsheets/d/…/edit" value="${p.urlSheets||''}"
+          oninput="draftProjects[${i}].urlSheets=this.value">
+        <button class="btn btn-danger" onclick="removeProject(${i})">Hapus proyek ini</button>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+
+function toggleRow(i) { document.getElementById('pbody-'+i)?.classList.toggle('open'); }
+
+function refreshRow(i) {
+  const rows = document.querySelectorAll('.psetup-row');
+  if (rows[i]) {
+    rows[i].querySelector('.psetup-name').textContent = draftProjects[i].name || '(Proyek baru)';
+    rows[i].querySelector('.psetup-meta').textContent = draftProjects[i].location || 'Belum ada lokasi';
+  }
+}
+
+function addProjectDraft() {
+  draftProjects.push({ id: Date.now(), name:'', location:'', urlRakap:'', urlSheets:'' });
+  renderSetupList();
+  document.getElementById('pbody-'+(draftProjects.length-1))?.classList.add('open');
+}
+
+function removeProject(i) { draftProjects.splice(i,1); renderSetupList(); }
+
+function saveAllProjects() {
+  PROJECTS = draftProjects.filter(p => p.name.trim());
+  localStorage.setItem('panata_b_projects', JSON.stringify(PROJECTS));
+  closeSetupModal();
+  renderSidebar();
+  if (PROJECTS.length === 0) {
+    document.getElementById('viewEmpty').classList.remove('hidden');
+    document.getElementById('viewMain').classList.add('hidden');
+    return;
+  }
+  showToast(`${PROJECTS.length} proyek disimpan`);
+  document.getElementById('viewEmpty').classList.add('hidden');
+  document.getElementById('viewMain').classList.remove('hidden');
+  fetchAllData();
+}
+
+// ── TOAST ──────────────────────────────
+function showToast(msg, isErr) {
+  const t = document.getElementById('toast');
+  t.textContent = (isErr?'✕ ':'✓ ') + msg;
+  t.className = 'toast show'+(isErr?' err':'');
+  setTimeout(()=>{t.className='toast';}, 3000);
+}
+
+// ── BOOT ───────────────────────────────
+init();
+setInterval(()=>{ if(PROJECTS.length>0) fetchAllData(); }, 5*60*1000);
+</script>
+</body>
+</html>
